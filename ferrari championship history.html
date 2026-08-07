@@ -2,52 +2,86 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ferrari F1 Championship History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ferrari-red: #D40000;
-    --ferrari-dark: #8C0000;
-    --ink: #1a1410;
-    --paper: #F7F3EC;
-    --paper-line: #E2D9C8;
-    --gold: #C9A227;
-    --muted: #756B5C;
+    --bg: #131110;
+    --bg-alt: #1b1815;
+    --line: rgba(237,231,217,0.09);
+    --line-strong: rgba(237,231,217,0.18);
+    --red: #D2001F;
+    --red-bright: #F01430;
+    --gold: #C9A961;
+    --cream: #EDE7D9;
+    --muted: #8C8478;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
     padding: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+  }
+  body {
+    background-image:
+      linear-gradient(var(--bg) 0%, var(--bg) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px);
+    padding: 64px 24px 100px;
   }
   .wrap {
-    max-width: 980px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 28px 18px 48px;
   }
   .title-block {
-    border-bottom: 3px solid var(--ferrari-red);
-    padding-bottom: 14px;
-    margin-bottom: 18px;
+    margin-bottom: 40px;
   }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content:""; width: 28px; height: 1px; background: var(--gold); display:inline-block; }
   h1 {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 28px;
+    font-size: clamp(40px, 8vw, 84px);
+    line-height: 0.9;
     font-weight: 700;
-    margin: 0 0 4px 0;
-    letter-spacing: 0.2px;
-  }
-  .subtitle {
-    font-size: 13.5px;
-    color: var(--muted);
+    letter-spacing: -0.01em;
     margin: 0;
+    color: var(--cream);
+    text-transform: uppercase;
   }
+  h1 span { color: var(--red-bright); }
+  .subtitle {
+    margin: 20px 0 0;
+    max-width: 600px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .hero-stats {
+    display:flex; gap: 40px; margin-top: 36px; padding-top: 26px;
+    border-top: 1px solid var(--line-strong); flex-wrap: wrap;
+  }
+  .stat .n { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; color: var(--cream); line-height: 1; }
+  .stat .n em { color: var(--red-bright); font-style: normal; }
+  .stat .l { margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
   .legend {
     display: flex;
     gap: 22px;
-    margin: 16px 0 6px;
-    font-size: 12.5px;
+    margin: 0 0 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--muted);
     flex-wrap: wrap;
   }
   .legend-item {
@@ -67,42 +101,46 @@
 
   .chart-container {
     position: relative;
-    background: #fff;
-    border: 1px solid var(--paper-line);
-    border-radius: 4px;
+    background: var(--bg-alt);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
     padding: 10px 4px 4px 4px;
   }
   svg { display: block; width: 100%; height: auto; }
 
-  .axis-label { font-size: 10px; fill: var(--muted); }
-  .gridline { stroke: #ece6d8; stroke-width: 1; }
-  .zero-axis { stroke: #cfc6b3; stroke-width: 1; }
-  .decade-line { stroke: #b8ac95; stroke-width: 1.4; }
-  .decade-label { font-weight: 700; fill: var(--ink); font-size: 10.5px; }
+  .axis-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: var(--muted); }
+  .gridline { stroke: rgba(237,231,217,0.06); stroke-width: 1; }
+  .zero-axis { stroke: var(--line-strong); stroke-width: 1; }
+  .decade-line { stroke: rgba(237,231,217,0.22); stroke-width: 1.4; }
+  .decade-label { font-family: 'JetBrains Mono', monospace; font-weight: 700; fill: var(--cream); font-size: 10.5px; }
 
-  .wcc-line { fill: none; stroke: var(--ferrari-red); stroke-width: 2.2; }
-  .wdc-line { fill: none; stroke: var(--ferrari-dark); stroke-width: 1.6; stroke-dasharray: 4 3; }
+  .wcc-line { fill: none; stroke: var(--red-bright); stroke-width: 2.2; }
+  .wdc-line { fill: none; stroke: var(--cream); stroke-width: 1.6; stroke-dasharray: 4 3; }
 
-  .wcc-dot { fill: var(--ferrari-red); }
-  .wdc-dot { fill: var(--ferrari-dark); }
-  .merged-dot { fill: var(--ink); stroke: #fff; stroke-width: 1; }
-  .title-dot { fill: var(--gold); stroke: #6b5410; stroke-width: 1; }
+  .wcc-dot { fill: var(--red-bright); }
+  .wdc-dot { fill: var(--cream); }
+  .merged-dot { fill: var(--muted); stroke: var(--bg); stroke-width: 1; }
+  .title-dot { fill: var(--gold); stroke: var(--bg); stroke-width: 1; }
 
-  .drought-band { fill: rgba(212,0,0,0.05); }
+  .drought-band { fill: rgba(240,20,48,0.045); }
   .drought-label {
+    font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px;
-    fill: var(--ferrari-dark);
+    fill: #a89c8c;
     font-weight: 600;
+    letter-spacing: 0.04em;
   }
 
   .tooltip {
     position: absolute;
     pointer-events: none;
-    background: var(--ink);
-    color: #fff;
+    background: #0d0b0a;
+    border: 1px solid var(--line-strong);
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
     font-size: 11.5px;
     padding: 8px 11px;
-    border-radius: 4px;
+    border-radius: 2px;
     line-height: 1.55;
     transform: translate(-50%, -110%);
     white-space: nowrap;
@@ -114,19 +152,24 @@
   .tooltip strong { color: var(--gold); font-size: 12.5px; }
 
   .notes {
-    margin-top: 22px;
+    margin-top: 48px;
     font-size: 13px;
     line-height: 1.55;
   }
   .notes h2 {
-    font-family: Georgia, serif;
-    font-size: 16px;
-    margin: 0 0 8px;
-    color: var(--ferrari-dark);
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--cream);
   }
   .drought-list {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 6px;
     margin: 6px 0 18px;
   }
@@ -134,18 +177,21 @@
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    padding: 6px 10px;
-    background: #fff;
-    border: 1px solid var(--paper-line);
-    border-left: 4px solid var(--gold);
-    border-radius: 3px;
-    font-size: 12.5px;
+    padding: 9px 12px;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--gold);
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
   }
-  .drought-row .years { font-weight: 600; }
+  .drought-row .years { font-weight: 500; color: var(--cream); }
   .drought-row .span { color: var(--muted); white-space: nowrap; }
   .footer-note {
     margin-top: 18px;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
+    line-height: 1.7;
     color: var(--muted);
   }
 </style>
@@ -154,17 +200,24 @@
 <div class="wrap">
 
   <div class="title-block">
-    <h1>Scuderia Ferrari — F1 Championship Finishing Position, 1950–2025</h1>
+    <p class="eyebrow">Scuderia Ferrari · 1950–2025</p>
+    <h1>Championship<br>History<span>.</span></h1>
     <p class="subtitle">Best-placed Ferrari driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 12 (bottom) is worst. Gold dots mark title wins.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="n"><em>16</em></div><div class="l">Constructors' titles</div></div>
+      <div class="stat"><div class="n">15</div><div class="l">Drivers' titles</div></div>
+      <div class="stat"><div class="n">76</div><div class="l">Seasons charted</div></div>
+      <div class="stat"><div class="n">2008</div><div class="l">Last constructors' title</div></div>
+    </div>
   </div>
 
   <div class="legend">
-    <div class="legend-item"><span class="swatch" style="border-color: var(--ferrari-red);"></span> Constructors' line (WCC) — from 1958</div>
-    <div class="legend-item"><span class="swatch dash" style="border-color: var(--ferrari-dark);"></span> Drivers' line (WDC) — best-placed Ferrari driver</div>
-    <div class="legend-item"><span class="swatch dot" style="background: var(--ferrari-red);"></span> Constructors' point only</div>
-    <div class="legend-item"><span class="swatch dot" style="background: var(--ferrari-dark);"></span> Drivers' point only</div>
-    <div class="legend-item"><span class="swatch dot" style="background: var(--ink);"></span> Drivers' &amp; Constructors' tied — single point</div>
-    <div class="legend-item"><span class="swatch dot" style="background: var(--gold); border: 1px solid #6b5410;"></span> Title won that year</div>
+    <div class="legend-item"><span class="swatch" style="border-color: var(--red-bright);"></span> Constructors' line (WCC) — from 1958</div>
+    <div class="legend-item"><span class="swatch dash" style="border-color: var(--cream);"></span> Drivers' line (WDC) — best-placed Ferrari driver</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--red-bright);"></span> Constructors' point only</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--cream);"></span> Drivers' point only</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--muted);"></span> Drivers' &amp; Constructors' tied — single point</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--gold);"></span> Title won that year</div>
   </div>
 
   <div class="chart-container">
