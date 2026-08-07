@@ -142,14 +142,26 @@
     padding: 8px 11px;
     border-radius: 2px;
     line-height: 1.55;
-    transform: translate(-50%, -110%);
+    transform: translate(-50%, -100%);
     white-space: nowrap;
     text-align: left;
     opacity: 0;
     transition: opacity 0.08s;
     z-index: 10;
   }
+  .tooltip.below { transform: translate(-50%, 0); }
   .tooltip strong { color: var(--gold); font-size: 12.5px; }
+
+  /* Transparent capture layer — pan-y keeps vertical page scrolling working
+     over the chart while horizontal drags scrub through years. */
+  .hit-layer { fill: transparent; cursor: crosshair; touch-action: pan-y; }
+  .hover-marker {
+    fill: none;
+    stroke: var(--cream);
+    stroke-width: 1.5;
+    pointer-events: none;
+    transition: opacity 0.08s;
+  }
 
   .notes {
     margin-top: 48px;
@@ -187,6 +199,11 @@
   }
   .drought-row .years { font-weight: 500; color: var(--cream); }
   .drought-row .span { color: var(--muted); white-space: nowrap; }
+  @media (max-width: 620px) {
+    body { padding: 40px 14px 72px; }
+    .legend { gap: 6px 16px; font-size: 10.5px; }
+    .tooltip { white-space: normal; max-width: calc(100vw - 56px); }
+  }
   .footer-note {
     margin-top: 18px;
     font-family: 'JetBrains Mono', monospace;
@@ -525,20 +542,80 @@ wccDroughts.forEach(([start, end, gap]) => {
 });
 
 // === Tooltip interactivity ===
+// Hit-testing the circles themselves only ever worked with a mouse: once the
+// 1400-unit viewBox is scaled down to a phone, a 2.2-unit dot is about one CSS
+// pixel across, and mouseenter/mouseleave don't fire on tap anyway. Since every
+// dot in a year carries the same tooltip, we can capture the pointer on a
+// transparent layer over the plot and snap to the nearest year instead — which
+// also gives mouse users a far more forgiving target.
 const tooltip = document.getElementById('tooltip');
+const chartContainer = document.querySelector('.chart-container');
+
+const byYear = new Map();
 dotsGroup.querySelectorAll('circle').forEach(c => {
-  c.style.cursor = 'pointer';
-  c.addEventListener('mouseenter', () => {
-    tooltip.innerHTML = c.dataset.tooltip;
-    const svgRect = svg.getBoundingClientRect();
-    const scale = svgRect.width / W;
-    const cx = parseFloat(c.getAttribute('cx')) * scale;
-    const cy = parseFloat(c.getAttribute('cy')) * scale;
-    tooltip.style.left = cx + 'px';
-    tooltip.style.top = cy + 'px';
-    tooltip.style.opacity = 1;
-  });
-  c.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+  const cx = parseFloat(c.getAttribute('cx'));
+  const key = Math.round(cx * 100);
+  if (!byYear.has(key)) byYear.set(key, {cx, html: c.dataset.tooltip, ys: []});
+  byYear.get(key).ys.push(parseFloat(c.getAttribute('cy')));
+});
+const yearIndex = [...byYear.values()].sort((a, b) => a.cx - b.cx);
+
+const marker = el('circle', {r: 7, class: 'hover-marker'});
+marker.style.opacity = 0;
+svg.appendChild(marker);
+
+const hitLayer = el('rect', {
+  x: margin.left, y: margin.top, width: plotW, height: plotH, class: 'hit-layer',
+});
+svg.appendChild(hitLayer);
+
+function showTooltipAt(clientX, clientY) {
+  const svgRect = svg.getBoundingClientRect();
+  const contRect = chartContainer.getBoundingClientRect();
+  const scale = svgRect.width / W;
+  if (!scale) return;
+  const sx = (clientX - svgRect.left) / scale;
+  const sy = (clientY - svgRect.top) / scale;
+
+  let best = null;
+  for (const yr of yearIndex) {
+    const d = Math.abs(yr.cx - sx);
+    if (best === null || d < best.d) best = {d, yr};
+  }
+  if (!best) return;
+  const yr = best.yr;
+  const cy = yr.ys.reduce((a, b) => (Math.abs(b - sy) < Math.abs(a - sy) ? b : a));
+
+  tooltip.innerHTML = yr.html;
+  marker.setAttribute('cx', yr.cx);
+  marker.setAttribute('cy', cy);
+  marker.style.opacity = 1;
+  tooltip.style.opacity = 1;
+
+  // Anchor to the dot, then keep the card inside the chart on narrow screens.
+  const px = (svgRect.left - contRect.left) + yr.cx * scale;
+  const py = (svgRect.top - contRect.top) + cy * scale;
+  const halfW = tooltip.offsetWidth / 2;
+  tooltip.style.left = Math.max(halfW + 4, Math.min(contRect.width - halfW - 4, px)) + 'px';
+
+  const flip = py - tooltip.offsetHeight - 10 < 0;   // no room above — drop below
+  tooltip.classList.toggle('below', flip);
+  tooltip.style.top = (flip ? py + 14 : py - 10) + 'px';
+}
+
+function hideTooltip() {
+  tooltip.style.opacity = 0;
+  marker.style.opacity = 0;
+}
+
+// pointermove covers both cases: with a mouse it fires on hover, with a finger
+// only while it's down, which makes dragging along the chart scrub through years.
+hitLayer.addEventListener('pointerdown', e => showTooltipAt(e.clientX, e.clientY));
+hitLayer.addEventListener('pointermove', e => showTooltipAt(e.clientX, e.clientY));
+hitLayer.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hideTooltip(); });
+hitLayer.addEventListener('pointercancel', hideTooltip);   // vertical page scroll
+document.addEventListener('pointerdown', e => {
+  if (!chartContainer.contains(e.target)) hideTooltip();   // tap elsewhere dismisses
 });
 
 // === Drought summary list (below chart) ===
