@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ferrari F1 Championship History</title>
+<style>
+  :root {
+    --ferrari-red: #D40000;
+    --ferrari-dark: #8C0000;
+    --ink: #1a1410;
+    --paper: #F7F3EC;
+    --paper-line: #E2D9C8;
+    --gold: #C9A227;
+    --muted: #756B5C;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 18px 48px;
+  }
+  .title-block {
+    border-bottom: 3px solid var(--ferrari-red);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.2px;
+  }
+  .subtitle {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0;
+  }
+  .legend {
+    display: flex;
+    gap: 22px;
+    margin: 16px 0 6px;
+    font-size: 12.5px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    width: 22px;
+    height: 0;
+    border-top: 3px solid;
+  }
+  .swatch.dash {
+    border-top-style: dashed;
+  }
+  .swatch.dot { width: 10px; height: 10px; border-radius: 50%; border: none; }
+
+  .chart-container {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    padding: 10px 4px 4px 4px;
+  }
+  svg { display: block; width: 100%; height: auto; }
+
+  .axis-label { font-size: 10px; fill: var(--muted); }
+  .gridline { stroke: #ece6d8; stroke-width: 1; }
+  .zero-axis { stroke: #cfc6b3; stroke-width: 1; }
+  .decade-line { stroke: #b8ac95; stroke-width: 1.4; }
+  .decade-label { font-weight: 700; fill: var(--ink); font-size: 10.5px; }
+
+  .wcc-line { fill: none; stroke: var(--ferrari-red); stroke-width: 2.2; }
+  .wdc-line { fill: none; stroke: var(--ferrari-dark); stroke-width: 1.6; stroke-dasharray: 4 3; }
+
+  .wcc-dot { fill: var(--ferrari-red); }
+  .wdc-dot { fill: var(--ferrari-dark); }
+  .merged-dot { fill: var(--ink); stroke: #fff; stroke-width: 1; }
+  .title-dot { fill: var(--gold); stroke: #6b5410; stroke-width: 1; }
+
+  .drought-band { fill: rgba(212,0,0,0.05); }
+  .drought-label {
+    font-size: 10.5px;
+    fill: var(--ferrari-dark);
+    font-weight: 600;
+  }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: #fff;
+    font-size: 11.5px;
+    padding: 8px 11px;
+    border-radius: 4px;
+    line-height: 1.55;
+    transform: translate(-50%, -110%);
+    white-space: nowrap;
+    text-align: left;
+    opacity: 0;
+    transition: opacity 0.08s;
+    z-index: 10;
+  }
+  .tooltip strong { color: var(--gold); font-size: 12.5px; }
+
+  .notes {
+    margin-top: 22px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .notes h2 {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    margin: 0 0 8px;
+    color: var(--ferrari-dark);
+  }
+  .drought-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 6px 0 18px;
+  }
+  .drought-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 10px;
+    background: #fff;
+    border: 1px solid var(--paper-line);
+    border-left: 4px solid var(--gold);
+    border-radius: 3px;
+    font-size: 12.5px;
+  }
+  .drought-row .years { font-weight: 600; }
+  .drought-row .span { color: var(--muted); white-space: nowrap; }
+  .footer-note {
+    margin-top: 18px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="title-block">
+    <h1>Scuderia Ferrari — F1 Championship Finishing Position, 1950–2025</h1>
+    <p class="subtitle">Best-placed Ferrari driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 12 (bottom) is worst. Gold dots mark title wins.</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch" style="border-color: var(--ferrari-red);"></span> Constructors' line (WCC) — from 1958</div>
+    <div class="legend-item"><span class="swatch dash" style="border-color: var(--ferrari-dark);"></span> Drivers' line (WDC) — best-placed Ferrari driver</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--ferrari-red);"></span> Constructors' point only</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--ferrari-dark);"></span> Drivers' point only</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--ink);"></span> Drivers' &amp; Constructors' tied — single point</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--gold); border: 1px solid #6b5410;"></span> Title won that year</div>
+  </div>
+
+  <div class="chart-container">
+    <svg id="chart" viewBox="0 0 1400 560" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+
+  <div class="notes">
+    <h2>Title droughts</h2>
+    <div class="drought-list" id="droughtList"></div>
+    <p class="footer-note">
+      The Constructors' Championship (WCC) didn't exist before 1958, so 1950–1957 shows only the Drivers' line.
+      In 1997, Michael Schumacher was disqualified from that year's Drivers' Championship after the collision
+      with Jacques Villeneuve at the European GP — shown above as "DSQ" — leaving Eddie Irvine as the team's
+      official best-placed finisher (7th). Sources: Wikipedia, gpracingstats.com, f1-fansite.com.
+    </p>
+  </div>
+
+</div>
+
+<script>
+// Each row: [year, WCC position (or null pre-1958), [[driverName, driverPosition], ...] for that year's drivers]
+// driverPosition is a number, or the string "WC" for champion, or "DQ" for disqualified-from-championship.
+// Drivers are listed in order of finishing position (best first).
+const data = [
+  [1950, null, [["Alberto Ascari", 5]]],
+  [1951, null, [["Alberto Ascari", 2], ["Jose Froilan Gonzalez", 3]]],
+  [1952, null, [["Alberto Ascari", "WC"], ["Giuseppe Farina", 2]]],
+  [1953, null, [["Alberto Ascari", "WC"], ["Giuseppe Farina", 3]]],
+  [1954, null, [["Jose Froilan Gonzalez", 2], ["Mike Hawthorn", 3]]],
+  [1955, null, [["Eugenio Castellotti", 3], ["Maurice Trintignant", 4]]],
+  [1956, null, [["Juan Manuel Fangio", "WC"], ["Peter Collins", 3]]],
+  [1957, null, [["Luigi Musso", 3], ["Mike Hawthorn", 4]]],
+  [1958, 2, [["Mike Hawthorn", "WC"], ["Peter Collins", 5]]],
+  [1959, 2, [["Tony Brooks", 2], ["Phil Hill", 4]]],
+  [1960, 3, [["Phil Hill", 5], ["Wolfgang von Trips", 6]]],
+  [1961, 1, [["Phil Hill", "WC"], ["Wolfgang von Trips", 2]]],
+  [1962, 6, [["Phil Hill", 6], ["Giancarlo Baghetti", 11]]],
+  [1963, 4, [["John Surtees", 4], ["Lorenzo Bandini", 9]]],
+  [1964, 1, [["John Surtees", "WC"], ["Lorenzo Bandini", 4]]],
+  [1965, 4, [["John Surtees", 5], ["Lorenzo Bandini", 6]]],
+  [1966, 2, [["John Surtees", 2], ["Lorenzo Bandini", 8]]],
+  [1967, 5, [["Chris Amon", 4], ["Mike Parkes", 16]]],
+  [1968, 4, [["Jacky Ickx", 4], ["Chris Amon", 10]]],
+  [1969, 6, [["Chris Amon", 12], ["Pedro Rodriguez", 13]]],
+  [1970, 2, [["Jacky Ickx", 2], ["Clay Regazzoni", 3]]],
+  [1971, 3, [["Jacky Ickx", 4], ["Clay Regazzoni", 7]]],
+  [1972, 4, [["Jacky Ickx", 4], ["Clay Regazzoni", 6]]],
+  [1973, 6, [["Jacky Ickx", 9], ["Arturo Merzario", 12]]],
+  [1974, 2, [["Clay Regazzoni", 2], ["Niki Lauda", 4]]],
+  [1975, 1, [["Niki Lauda", "WC"], ["Clay Regazzoni", 5]]],
+  [1976, 1, [["Niki Lauda", 2], ["Clay Regazzoni", 5]]],
+  [1977, 1, [["Niki Lauda", "WC"], ["Carlos Reutemann", 4]]],
+  [1978, 2, [["Carlos Reutemann", 3], ["Gilles Villeneuve", 9]]],
+  [1979, 1, [["Jody Scheckter", "WC"], ["Gilles Villeneuve", 2]]],
+  [1980, 10, [["Gilles Villeneuve", 10], ["Jody Scheckter", 19]]],
+  [1981, 5, [["Gilles Villeneuve", 7], ["Didier Pironi", 13]]],
+  [1982, 1, [["Didier Pironi", 2], ["Patrick Tambay", 7]]],
+  [1983, 1, [["Rene Arnoux", 3], ["Patrick Tambay", 4]]],
+  [1984, 2, [["Michele Alboreto", 4], ["Rene Arnoux", 6]]],
+  [1985, 2, [["Michele Alboreto", 2], ["Stefan Johansson", 7]]],
+  [1986, 4, [["Stefan Johansson", 5], ["Michele Alboreto", 8]]],
+  [1987, 4, [["Gerhard Berger", 5], ["Michele Alboreto", 7]]],
+  [1988, 2, [["Gerhard Berger", 3], ["Michele Alboreto", 5]]],
+  [1989, 3, [["Nigel Mansell", 4], ["Gerhard Berger", 7]]],
+  [1990, 2, [["Alain Prost", 2], ["Nigel Mansell", 5]]],
+  [1991, 3, [["Alain Prost", 5], ["Jean Alesi", 7]]],
+  [1992, 4, [["Jean Alesi", 7], ["Ivan Capelli", 12]]],
+  [1993, 4, [["Jean Alesi", 6], ["Gerhard Berger", 8]]],
+  [1994, 3, [["Gerhard Berger", 3], ["Jean Alesi", 5]]],
+  [1995, 3, [["Jean Alesi", 5], ["Gerhard Berger", 6]]],
+  [1996, 2, [["Michael Schumacher", 3], ["Eddie Irvine", 10]]],
+  [1997, 2, [["Eddie Irvine", 7], ["Michael Schumacher", "DQ"]]],
+  [1998, 2, [["Michael Schumacher", 2], ["Eddie Irvine", 4]]],
+  [1999, 1, [["Eddie Irvine", 2], ["Michael Schumacher", 5]]],
+  [2000, 1, [["Michael Schumacher", "WC"], ["Rubens Barrichello", 4]]],
+  [2001, 1, [["Michael Schumacher", "WC"], ["Rubens Barrichello", 3]]],
+  [2002, 1, [["Michael Schumacher", "WC"], ["Rubens Barrichello", 2]]],
+  [2003, 1, [["Michael Schumacher", "WC"], ["Rubens Barrichello", 4]]],
+  [2004, 1, [["Michael Schumacher", "WC"], ["Rubens Barrichello", 2]]],
+  [2005, 3, [["Michael Schumacher", 3], ["Rubens Barrichello", 8]]],
+  [2006, 2, [["Michael Schumacher", 2], ["Felipe Massa", 3]]],
+  [2007, 1, [["Kimi Raikkonen", "WC"], ["Felipe Massa", 4]]],
+  [2008, 1, [["Felipe Massa", 2], ["Kimi Raikkonen", 3]]],
+  [2009, 4, [["Kimi Raikkonen", 6], ["Felipe Massa", 11]]],
+  [2010, 3, [["Fernando Alonso", 2], ["Felipe Massa", 6]]],
+  [2011, 3, [["Fernando Alonso", 4], ["Felipe Massa", 6]]],
+  [2012, 2, [["Fernando Alonso", 2], ["Felipe Massa", 7]]],
+  [2013, 3, [["Fernando Alonso", 2], ["Felipe Massa", 8]]],
+  [2014, 4, [["Fernando Alonso", 6], ["Kimi Raikkonen", 12]]],
+  [2015, 2, [["Sebastian Vettel", 3], ["Kimi Raikkonen", 4]]],
+  [2016, 3, [["Sebastian Vettel", 4], ["Kimi Raikkonen", 6]]],
+  [2017, 2, [["Sebastian Vettel", 2], ["Kimi Raikkonen", 4]]],
+  [2018, 2, [["Sebastian Vettel", 2], ["Kimi Raikkonen", 3]]],
+  [2019, 2, [["Charles Leclerc", 4], ["Sebastian Vettel", 5]]],
+  [2020, 6, [["Charles Leclerc", 8], ["Sebastian Vettel", 13]]],
+  [2021, 3, [["Carlos Sainz", 5], ["Charles Leclerc", 7]]],
+  [2022, 2, [["Charles Leclerc", 2], ["Carlos Sainz", 5]]],
+  [2023, 3, [["Charles Leclerc", 5], ["Carlos Sainz", 7]]],
+  [2024, 2, [["Charles Leclerc", 3], ["Carlos Sainz", 5]]],
+  [2025, 4, [["Charles Leclerc", 5], ["Lewis Hamilton", 6]]],
+];
+
+// Derive WDC (best driver position) per year for the line/series math.
+// "WC" counts as 1; "DQ" is excluded from being "best" if a classified teammate beat it.
+function posValue(p) {
+  if (p === "WC") return 1;
+  if (p === "DQ") return Infinity; // disqualified, not a valid finishing position
+  return p;
+}
+const rows = data.map(([year, wcc, drivers]) => {
+  const best = drivers.reduce((a, b) => posValue(a[1]) <= posValue(b[1]) ? a : b);
+  const wdcNumeric = posValue(best[1]);
+  return { year, wcc, drivers, bestDriver: best[0], wdc: wdcNumeric };
+});
+
+const W = 1400, H = 560;
+const margin = {top: 20, right: 24, bottom: 36, left: 44};
+const plotW = W - margin.left - margin.right;
+const plotH = H - margin.top - margin.bottom - 70; // reserve space for drought band labels at bottom of plot area
+
+const years = rows.map(d => d.year);
+const minYear = Math.min(...years), maxYear = Math.max(...years);
+const maxPos = 12; // y-axis max (positions go 1..12, lower=better, drawn inverted)
+
+function x(year) {
+  return margin.left + (year - minYear) / (maxYear - minYear) * plotW;
+}
+function y(pos) {
+  // pos=1 at top, pos=maxPos at bottom
+  return margin.top + (pos - 1) / (maxPos - 1) * plotH;
+}
+
+const svg = document.getElementById('chart');
+const ns = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs) {
+  const e = document.createElementNS(ns, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+// Drought periods: constructors' (WCC=1) gaps and drivers' (WDC=1) gaps
+// WCC title years: 1961,1964,1975,1976,1977,1979,1982,1983,1999,2000,2001,2002,2003,2004,2007,2008
+// WDC title years: 1952,1953,1956,1958,1961,1964,1975,1977,1979,2000,2001,2002,2003,2004,2007
+const wccTitles = [1961,1964,1975,1976,1977,1979,1982,1983,1999,2000,2001,2002,2003,2004,2007,2008];
+const wdcTitles = [1952,1953,1956,1958,1961,1964,1975,1977,1979,2000,2001,2002,2003,2004,2007];
+
+function droughts(titleYears, seriesStart, seriesEnd) {
+  const sorted = [...titleYears].sort((a,b)=>a-b);
+  const gaps = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const gap = sorted[i+1] - sorted[i] - 1;
+    if (gap >= 5) gaps.push([sorted[i]+1, sorted[i+1]-1, gap]);
+  }
+  // trailing drought to present
+  const lastGap = seriesEnd - sorted[sorted.length-1];
+  if (lastGap >= 5) gaps.push([sorted[sorted.length-1]+1, seriesEnd, lastGap]);
+  return gaps;
+}
+
+const wccDroughts = droughts(wccTitles, 1958, 2025);
+const wdcDroughts = droughts(wdcTitles, 1950, 2025);
+
+// === Draw drought bands (constructors' droughts, the headline ones) ===
+const bandGroup = el('g', {});
+svg.appendChild(bandGroup);
+wccDroughts.forEach(([start, end, gap]) => {
+  const rect = el('rect', {
+    x: x(start) - (x(start)-x(start-1))/2,
+    y: margin.top,
+    width: x(end) - x(start) + (x(start+1)-x(start)),
+    height: plotH,
+    class: 'drought-band'
+  });
+  bandGroup.appendChild(rect);
+});
+
+// === Gridlines & axis ===
+const gridGroup = el('g', {});
+svg.appendChild(gridGroup);
+for (let p = 1; p <= maxPos; p += 1) {
+  const ly = y(p);
+  gridGroup.appendChild(el('line', {x1: margin.left, x2: W - margin.right, y1: ly, y2: ly, class: p===1 ? 'zero-axis' : 'gridline'}));
+  if (p === 1 || p % 2 === 1 || p === maxPos) {
+    const t = el('text', {x: margin.left - 8, y: ly + 3, 'text-anchor': 'end', class: 'axis-label'});
+    t.textContent = p;
+    svg.appendChild(t);
+  }
+}
+// x-axis year ticks every 5 years
+for (let yr = 1950; yr <= 2025; yr += 5) {
+  const lx = x(yr);
+  const isDecade = yr % 10 === 0;
+  gridGroup.appendChild(el('line', {
+    x1: lx, x2: lx, y1: margin.top, y2: margin.top + plotH,
+    class: isDecade ? 'decade-line' : 'gridline'
+  }));
+  const t = el('text', {
+    x: lx, y: margin.top + plotH + 16, 'text-anchor': 'middle',
+    class: isDecade ? 'axis-label decade-label' : 'axis-label'
+  });
+  t.textContent = yr;
+  svg.appendChild(t);
+}
+// y-axis title
+const yAxisTitle = el('text', {x: 14, y: margin.top + plotH/2, 'text-anchor': 'middle', class: 'axis-label', transform: `rotate(-90, 14, ${margin.top + plotH/2})`});
+yAxisTitle.textContent = 'Position (1 = best, 12 = worst)';
+svg.appendChild(yAxisTitle);
+
+// === Lines ===
+function buildPath(getVal) {
+  let d = '';
+  let started = false;
+  rows.forEach(r => {
+    const val = getVal(r);
+    if (val === null || val === undefined || !isFinite(val)) { started = false; return; }
+    const cmd = started ? 'L' : 'M';
+    d += `${cmd}${x(r.year)},${y(val)} `;
+    started = true;
+  });
+  return d.trim();
+}
+
+svg.appendChild(el('path', {d: buildPath(r => r.wcc), class: 'wcc-line'}));
+svg.appendChild(el('path', {d: buildPath(r => r.wdc), class: 'wdc-line'}));
+
+// === Points ===
+// Each year gets at most two visual markers: one for the WCC position, one for the WDC
+// (best driver) position. If they coincide at the same y, we draw a single merged dot.
+const dotsGroup = el('g', {});
+svg.appendChild(dotsGroup);
+
+function driverLine(d) {
+  // d = [name, position] ; renders "Name — P3" / "Name — Champion" / "Name — DQ"
+  const [name, pos] = d;
+  const label = pos === "WC" ? "Champion" : (pos === "DQ" ? "DSQ" : `P${pos}`);
+  return `${name} — ${label}`;
+}
+
+function buildTooltipHTML(r) {
+  const isWccTitle = r.wcc === 1;
+  const isChamp = r.wdc === 1 && r.drivers.some(d => d[1] === "WC");
+  const champDriver = isChamp ? r.drivers.find(d => d[1] === "WC") : null;
+  const driverLines = r.drivers.map(driverLine).join('<br>');
+  const hasWcc = r.wcc !== null;
+
+  let lines = [];
+  lines.push(`<strong>${r.year}</strong>`);
+
+  if (isChamp) {
+    // Champion year: driver + position, constructors' place, then both drivers' places
+    lines.push(`${champDriver[0]} — World Champion`);
+    if (hasWcc) lines.push(`Constructors: P${r.wcc}${isWccTitle ? ' (Champions)' : ''}`);
+    lines.push(driverLines);
+  } else if (hasWcc) {
+    // Constructors' point present, not a championship-winning year
+    lines.push(`Constructors: P${r.wcc}`);
+    lines.push(driverLines);
+  } else {
+    // Pre-1958: drivers' point only
+    lines.push(driverLines);
+  }
+  return lines.join('<br>');
+}
+
+rows.forEach(r => {
+  const isWccTitle = r.wcc === 1;
+  const isWdcTitle = r.drivers.some(d => d[1] === "WC");
+  const merged = (r.wcc !== null && r.wcc === r.wdc);
+  const tooltipHTML = buildTooltipHTML(r);
+
+  if (merged) {
+    const isTitle = isWccTitle || isWdcTitle;
+    const dot = el('circle', {
+      cx: x(r.year), cy: y(r.wdc), r: isTitle ? 5.5 : 3,
+      class: isTitle ? 'title-dot' : 'merged-dot',
+    });
+    dot.dataset.tooltip = tooltipHTML;
+    dotsGroup.appendChild(dot);
+  } else {
+    if (r.wcc !== null) {
+      const dot = el('circle', {
+        cx: x(r.year), cy: y(r.wcc), r: isWccTitle ? 5.5 : 2.6,
+        class: isWccTitle ? 'title-dot' : 'wcc-dot',
+      });
+      dot.dataset.tooltip = tooltipHTML;
+      dotsGroup.appendChild(dot);
+    }
+    const dot = el('circle', {
+      cx: x(r.year), cy: y(r.wdc), r: isWdcTitle ? 5 : 2.2,
+      class: isWdcTitle ? 'title-dot' : 'wdc-dot',
+    });
+    dot.dataset.tooltip = tooltipHTML;
+    dotsGroup.appendChild(dot);
+  }
+});
+
+// === Drought labels (only the constructors' droughts, on the band) ===
+wccDroughts.forEach(([start, end, gap]) => {
+  const midX = (x(start) + x(end)) / 2;
+  const t = el('text', {x: midX, y: margin.top + plotH - 8, 'text-anchor': 'middle', class: 'drought-label'});
+  t.textContent = `${gap}-yr drought`;
+  svg.appendChild(t);
+});
+
+// === Tooltip interactivity ===
+const tooltip = document.getElementById('tooltip');
+dotsGroup.querySelectorAll('circle').forEach(c => {
+  c.style.cursor = 'pointer';
+  c.addEventListener('mouseenter', () => {
+    tooltip.innerHTML = c.dataset.tooltip;
+    const svgRect = svg.getBoundingClientRect();
+    const scale = svgRect.width / W;
+    const cx = parseFloat(c.getAttribute('cx')) * scale;
+    const cy = parseFloat(c.getAttribute('cy')) * scale;
+    tooltip.style.left = cx + 'px';
+    tooltip.style.top = cy + 'px';
+    tooltip.style.opacity = 1;
+  });
+  c.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+});
+
+// === Drought summary list (below chart) ===
+const droughtListEl = document.getElementById('droughtList');
+const allDroughts = wccDroughts.map(d => ({...{start:d[0], end:d[1], gap:d[2]}, type: 'Constructors\u2019'}))
+  .concat(wdcDroughts.map(d => ({start:d[0], end:d[1], gap:d[2], type: 'Drivers\u2019'})))
+  .sort((a,b) => a.start - b.start);
+
+allDroughts.forEach(d => {
+  const row = document.createElement('div');
+  row.className = 'drought-row';
+  const endLabel = d.end >= 2025 ? '2025 (ongoing)' : d.end;
+  row.innerHTML = `<span class="years">${d.type} title drought: ${d.start}\u2013${endLabel}</span><span class="span">${d.gap} years</span>`;
+  droughtListEl.appendChild(row);
+});
+</script>
+</body>
+</html>

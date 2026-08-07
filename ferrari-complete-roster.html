@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferrari — Complete Driver Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #131110;
+    --bg-alt: #1b1815;
+    --line: rgba(237,231,217,0.09);
+    --line-strong: rgba(237,231,217,0.18);
+    --red: #D2001F;
+    --red-bright: #F01430;
+    --gold: #C9A961;
+    --cream: #EDE7D9;
+    --muted: #8C8478;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+  }
+
+  body{
+    background-image:
+      linear-gradient(var(--bg) 0%, var(--bg) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px);
+    padding: 64px 24px 100px;
+  }
+
+  .page{
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  header{ margin-bottom: 48px; position: relative; }
+
+  .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 18px;
+    display:flex; align-items:center; gap: 12px;
+  }
+  .eyebrow::before{ content:""; width: 28px; height: 1px; background: var(--gold); display:inline-block; }
+
+  h1{
+    font-size: clamp(40px, 8vw, 84px);
+    line-height: 0.9;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--cream);
+    text-transform: uppercase;
+  }
+  h1 span{ color: var(--red-bright); }
+
+  .sub{
+    margin-top: 20px;
+    max-width: 600px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .hero-stats{
+    display:flex; gap: 40px; margin-top: 36px; padding-top: 26px;
+    border-top: 1px solid var(--line-strong); flex-wrap: wrap;
+  }
+  .stat .n{ font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; color: var(--cream); line-height: 1; }
+  .stat .n em{ color: var(--red-bright); font-style: normal; }
+  .stat .l{ margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+  .tabs{
+    display:flex; gap: 6px; margin: 40px 0 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .tab{
+    padding: 9px 16px; border: 1px solid var(--line-strong); background: transparent;
+    color: var(--muted); cursor: pointer; border-radius: 2px; transition: all .15s ease;
+  }
+  .tab.active{ color: var(--cream); border-color: var(--gold); background: rgba(201,169,97,0.08); }
+  .tab:hover{ color: var(--cream); }
+
+  .board-head{
+    display: grid;
+    grid-template-columns: 40px 1fr 108px 160px 46px;
+    gap: 16px;
+    padding: 0 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .row{
+    display: grid;
+    grid-template-columns: 40px 1fr 108px 160px 46px;
+    gap: 16px; align-items: center;
+    padding: 11px 4px; border-bottom: 1px solid var(--line);
+  }
+  .row:hover{ background: var(--bg-alt); }
+  .rank{ font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+  .row.top .rank{ color: var(--gold); }
+
+  .driver-cell{ display:flex; flex-direction:column; gap:2px; overflow:hidden; }
+  .driver{
+    font-size: 15.5px; font-weight: 500; letter-spacing: 0.01em; color: var(--cream);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .row.top .driver{ font-weight: 700; }
+  .subline{
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .approx{ color: var(--gold); }
+
+  .years{
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .gauge-wrap{ display:flex; align-items:center; gap:10px; }
+  .gauge{
+    position: relative; height: 12px; flex: 1;
+    background: repeating-linear-gradient(90deg, transparent, transparent 9px, var(--line-strong) 9px, var(--line-strong) 10px);
+    border-radius: 1px;
+  }
+  .gauge .fill{
+    position: absolute; inset: 0; width: var(--pct);
+    background: linear-gradient(90deg, var(--red) 0%, var(--red-bright) 70%, var(--gold) 100%);
+    border-radius: 1px;
+  }
+
+  .seasons{
+    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
+    text-align: right; color: var(--cream);
+  }
+  .row.top .seasons{ color: var(--red-bright); }
+
+  footer{
+    margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--line-strong);
+    display:flex; flex-direction:column; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--muted); line-height:1.7;
+  }
+  footer a{ color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 640px){
+    .board-head{ grid-template-columns: 26px 1fr 78px 34px; gap: 8px; }
+    .row{ grid-template-columns: 26px 1fr 78px 34px; gap: 8px; }
+    .driver{ font-size: 13.5px; }
+    .years{ display:none; }
+    .hero-stats{ gap: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="eyebrow">Scuderia Ferrari · 1950–2026</p>
+    <h1>Complete<br>Roster<span>.</span></h1>
+    <p class="sub">Every driver who has started a Grand Prix for Ferrari — works team and privateer entries alike — ranked by tenure. Seasons count a driver's Ferrari years even when the stint was a partial season, a mid-year substitution, or a second spell years later.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="n"><em>97</em></div><div class="l">Drivers</div></div>
+      <div class="stat"><div class="n">11</div><div class="l">Longest tenure (seasons)</div></div>
+      <div class="stat"><div class="n">180</div><div class="l">Most starts</div></div>
+      <div class="stat"><div class="n">77</div><div class="l">Years of racing</div></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-sort="seasons">By Tenure</button>
+    <button class="tab" data-sort="gp">By Races</button>
+  </div>
+
+  <div class="board-head">
+    <span>#</span>
+    <span>Driver</span>
+    <span>Years</span>
+    <span>Seasons</span>
+    <span style="text-align:right">#</span>
+  </div>
+
+  <div id="board"></div>
+
+  <footer>
+    <span>Source: statsf1.com (race starts, wins) cross-referenced with RaceFans' year-by-year Ferrari works lineups, 1950–2026.</span>
+    <span><span class="approx">Gold years</span> mark early-1950s privateer entries (independent teams running customer Ferraris) where exact season spans are less firmly documented than works-team stints; pre-1958 totals also include non-championship Formula One races, which is why some low-GP drivers still span multiple "seasons."</span>
+    <span>Bar scaled to Schumacher's 11 seasons / 180 starts.</span>
+  </footer>
+
+</div>
+
+<script>
+  // [name, GP starts, wins, seasons, years label, approximate/privateer]
+  const data = [
+    ["Michael Schumacher", 180, 72, 11, "1996–2006", false],
+    ["Felipe Massa", 139, 11, 8, "2006–2013", false],
+    ["Kimi Räikkönen", 151, 10, 8, "2007–09, 14–18", false],
+    ["Charles Leclerc", 158, 8, 8, "2019–present", false],
+    ["Sebastian Vettel", 118, 14, 6, "2015–2020", false],
+    ["Rubens Barrichello", 102, 9, 6, "2000–2005", false],
+    ["Gerhard Berger", 96, 5, 6, "1987–89, 93–95", false],
+    ["Wolfgang von Trips", 25, 2, 6, "1956–1961", false],
+    ["Lorenzo Bandini", 35, 1, 6, "1962–1967", false],
+    ["Clay Regazzoni", 73, 4, 6, "1970–72, 74–76", false],
+    ["Gilles Villeneuve", 66, 6, 6, "1977–1982", false],
+    ["Alberto Ascari", 27, 13, 5, "1950–1954", false],
+    ["Luigi Villoresi", 20, 0, 5, "1950–53, 1955", false],
+    ["José Froilán González", 15, 2, 5, "1951–1960", false],
+    ["Mike Hawthorn", 35, 3, 5, "1953–58 (skip '56)", false],
+    ["Phil Hill", 30, 3, 5, "1958–1962", false],
+    ["Jacky Ickx", 55, 6, 5, "1968, 1970–73", false],
+    ["Michele Alboreto", 80, 3, 5, "1984–1988", false],
+    ["Jean Alesi", 79, 1, 5, "1991–1995", false],
+    ["Fernando Alonso", 96, 11, 5, "2010–2014", false],
+    ["Ludovico Scarfiotti", 6, 1, 5, "1963–1967", false],
+    ["Niki Lauda", 57, 15, 4, "1974–1977", false],
+    ["John Surtees", 30, 4, 4, "1963–1966", false],
+    ["Giuseppe Farina", 20, 1, 4, "1952–1955", false],
+    ["Olivier Gendebien", 8, 0, 4, "1956–61 (occas.)", false],
+    ["Willy Mairesse", 10, 0, 4, "1960–1963", false],
+    ["Piero Taruffi", 13, 1, 4, "1951–55 (occas.)", false],
+    ["Carlos Sainz", 88, 4, 4, "2021–2024", false],
+    ["Eddie Irvine", 65, 4, 4, "1996–1999", false],
+    ["René Arnoux", 32, 3, 3, "1983–1985", false],
+    ["Carlos Reutemann", 34, 5, 3, "1976–1978", false],
+    ["Chris Amon", 27, 0, 3, "1967–1969", false],
+    ["Umberto Maglioli", 6, 0, 3, "1953–1955", false],
+    ["Luigi Musso", 15, 1, 3, "1956–1958", false],
+    ["Peter Collins", 20, 3, 3, "1956–1958", false],
+    ["Eugenio Castellotti", 11, 0, 3, "1955–1957", false],
+    ["Mario Andretti", 12, 1, 3, "1971, '72, '82", false],
+    ["Pedro Rodríguez", 8, 0, 3, "1963–64, 1969", false],
+    ["Lewis Hamilton", 32, 1, 2, "2025–present", false],
+    ["Arturo Merzario", 11, 0, 2, "1972–1973", false],
+    ["Alain Prost", 30, 5, 2, "1990–1991", false],
+    ["Nigel Mansell", 31, 3, 2, "1989–1990", false],
+    ["Didier Pironi", 25, 2, 2, "1981–1982", false],
+    ["Patrick Tambay", 21, 2, 2, "1982–1983", false],
+    ["Jody Scheckter", 28, 3, 2, "1979–1980", false],
+    ["Nicola Larini", 4, 0, 2, "1992, 1994", false],
+    ["Stefan Johansson", 31, 0, 2, "1985–1986", false],
+    ["Cliff Allison", 6, 0, 2, "1959–1960", false],
+    ["Richie Ginther", 10, 0, 2, "1960–1961", false],
+    ["Ricardo Rodríguez", 5, 0, 2, "1961–1962", false],
+    ["Alfonso de Portago", 5, 0, 2, "1956–1957", false],
+    ["Paul Frère", 3, 0, 2, "1955–1956", false],
+    ["Mike Parkes", 6, 0, 2, "1966–1967", false],
+    ["Giancarlo Baghetti", 8, 1, 2, "1961–1962", false],
+    ["Peter Whitehead", 7, 0, 2, "1951–1952", true],
+    ["Louis Rosier", 15, 0, 2, "c. 1950–51", true],
+    ["Rudi Fischer", 7, 0, 2, "c. 1952–53", true],
+    ["Jacques Swaters", 5, 0, 2, "c. 1952–53", true],
+    ["Peter Hirt", 4, 0, 2, "c. 1952, '54", true],
+    ["Juan Manuel Fangio", 7, 3, 1, "1956", false],
+    ["Jean Behra", 3, 0, 1, "1959", false],
+    ["Tony Brooks", 7, 2, 1, "1959", false],
+    ["Dan Gurney", 4, 0, 1, "1959", false],
+    ["Nino Vaccarella", 1, 0, 1, "1965", false],
+    ["Jonathan Williams", 1, 0, 1, "1967", false],
+    ["Andrea de Adamich", 1, 0, 1, "1968", false],
+    ["Derek Bell", 2, 0, 1, "1968", false],
+    ["Ignazio Giunti", 4, 0, 1, "1970", false],
+    ["Nanni Galli", 1, 0, 1, "1972", false],
+    ["Gianni Morbidelli", 1, 0, 1, "1991", false],
+    ["Ivan Capelli", 14, 0, 1, "1992", false],
+    ["Mika Salo", 6, 0, 1, "1999", false],
+    ["Luca Badoer", 2, 0, 1, "2009", false],
+    ["Giancarlo Fisichella", 5, 0, 1, "2009", false],
+    ["Oliver Bearman", 1, 0, 1, "2024", false],
+    ["Dorino Serafini", 1, 0, 1, "1950", false],
+    ["Raymond Sommer", 2, 0, 1, "1950", false],
+    ["André Simon", 2, 0, 1, "1952", false],
+    ["Piero Carini", 3, 0, 1, "1953", false],
+    ["Robert Manzon", 5, 0, 1, "1954", false],
+    ["Harry Schell", 1, 0, 1, "1955", false],
+    ["Cesare Perdisa", 1, 0, 1, "1957", false],
+    ["André Pilette", 1, 0, 1, "1956", false],
+    ["Reg Parnell", 2, 0, 1, "c. 1950", true],
+    ["Charles de Tornaco", 2, 0, 1, "c. 1952", true],
+    ["Chico Landi", 1, 0, 1, "c. 1951", true],
+    ["Roger Laurent", 1, 0, 1, "c. 1950", true],
+    ["Kurt Adolff", 1, 0, 1, "c. 1953", true],
+    ["Giorgio Scarlatti", 1, 0, 1, "c. 1957", true],
+    ["Bob Bondurant", 1, 0, 1, "c. 1965", true],
+    ["Johnny Claes", 1, 0, 1, "c. 1952", true],
+    ["Franco Comotti", 1, 0, 1, "c. 1950", true],
+    ["Max de Terra", 1, 0, 1, "c. 1951", true],
+    ["Rudolf Schoeller", 1, 0, 1, "c. 1952", true],
+    ["Clemente Biondetti", 1, 0, 1, "c. 1950", true],
+    ["Roy Salvadori", 1, 0, 1, "c. 1952", true],
+    ["Alessandro De Tomaso", 1, 0, 1, "c. 1957", true],
+  ];
+
+  const board = document.getElementById('board');
+  const maxSeasons = Math.max(...data.map(d => d[3]));
+  const maxGP = Math.max(...data.map(d => d[1]));
+
+  function render(sortBy){
+    const sorted = [...data].sort((a,b) => {
+      if(sortBy === 'gp') return b[1] - a[1];
+      return b[3] - a[3] || b[1] - a[1];
+    });
+    board.innerHTML = '';
+    sorted.forEach((d, i) => {
+      const [name, gp, wins, seasons, years, approx] = d;
+      const val = sortBy === 'gp' ? gp : seasons;
+      const max = sortBy === 'gp' ? maxGP : maxSeasons;
+      const pct = (val / max * 100).toFixed(1) + '%';
+      const row = document.createElement('div');
+      row.className = 'row' + (i < 3 ? ' top' : '');
+      const winsTxt = wins > 0 ? `${wins} win${wins>1?'s':''}` : 'no wins';
+      row.innerHTML = `
+        <span class="rank">${String(i + 1).padStart(2,'0')}</span>
+        <span class="driver-cell">
+          <span class="driver">${name}</span>
+          <span class="subline">${gp} GP · ${winsTxt}</span>
+        </span>
+        <span class="years${approx ? ' approx' : ''}">${years}</span>
+        <span class="gauge-wrap"><span class="gauge"><span class="fill" style="--pct:${pct}"></span></span></span>
+        <span class="seasons">${sortBy === 'gp' ? gp : seasons}</span>
+      `;
+      board.appendChild(row);
+    });
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      render(tab.dataset.sort);
+    });
+  });
+
+  render('seasons');
+</script>
+</body>
+</html>
