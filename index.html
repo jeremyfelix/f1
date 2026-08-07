@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scuderia Felix — Formula One charts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B0F11; --panel:#131A1E; --rule:#222D32; --rule-soft:#1A2327;
+  --text:#E9EEF0; --muted:#8A9CA3; --dim:#5D6E75; --signal:#E0B341;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--ink);color:var(--text);
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  -webkit-font-smoothing:antialiased;padding-bottom:60px}
+.wrap{max-width:1360px;margin:0 auto;padding:0 18px}
+
+header{padding:44px 0 26px}
+.eyebrow{font-family:"Barlow Condensed",Arial Narrow,sans-serif;font-size:13px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--signal);font-weight:600;margin:0 0 14px}
+h1{font-family:"Barlow Condensed","Avenir Next Condensed",Arial Narrow,sans-serif;font-weight:700;
+  text-transform:uppercase;letter-spacing:.01em;font-size:clamp(42px,10vw,86px);line-height:.9;margin:0 0 18px}
+h1 em{font-style:normal;color:var(--dim)}
+.deck{max-width:62ch;font-size:14px;line-height:1.65;color:var(--muted);margin:0}
+.deck b{color:var(--text);font-weight:500}
+
+.index{list-style:none;margin:0;padding:26px 0 0;border-top:1px solid var(--rule);
+  display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+
+.card{display:block;height:100%;text-decoration:none;color:inherit;
+  background:var(--panel);border:1px solid var(--rule);border-left-width:3px;
+  border-left-color:var(--signal);border-radius:3px;padding:17px 19px 18px}
+.card:hover{border-color:var(--dim);border-left-color:var(--signal);background:#161E23}
+.card:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+.card h2{font-family:"Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.05em;
+  font-size:22px;margin:0;font-weight:700;line-height:1.05;color:var(--text)}
+.card .yrs{font-size:11px;color:var(--signal);letter-spacing:.12em;margin:6px 0 10px}
+.card p{font-size:13px;line-height:1.68;color:var(--muted);margin:0}
+
+footer{margin-top:44px;border-top:1px solid var(--rule);padding-top:22px;
+  font-size:11.5px;color:var(--dim);letter-spacing:.02em;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Formula One · charts &amp; records</p>
+  <h1>Scuderia<br><em>Felix</em></h1>
+  <p class="deck">Four hand-built charts about Formula One — one tracing the ownership of every constructor that has ever entered the championship, three digging through <b>Ferrari's seventy-seven seasons</b> of drivers, wins and near-misses. Each is a single self-contained page; pick one below.</p>
+</header>
+
+<ul class="index">
+  <li>
+    <a class="card" href="f1-lineage.html">
+      <h2>The Lineage</h2>
+      <p class="yrs">1950–2026 · 77 seasons</p>
+      <p>Follows every constructor through its renames, sales, mergers and collapses, so you can see which of today's eleven teams are wearing someone else's history.</p>
+    </a>
+  </li>
+  <li>
+    <a class="card" href="ferrari%20championship%20history.html">
+      <h2>Championship History</h2>
+      <p class="yrs">1950–2025 · WDC vs WCC</p>
+      <p>Plots where the Scuderia actually finished each year, drivers' against constructors', with the gaps between titles called out as droughts.</p>
+    </a>
+  </li>
+  <li>
+    <a class="card" href="ferrari-complete-roster.html">
+      <h2>Complete Driver Roster</h2>
+      <p class="yrs">1950–2026 · by tenure</p>
+      <p>Everyone who ever started a Grand Prix in a Ferrari — works entries and early privateers alike — ranked by how long they lasted.</p>
+    </a>
+  </li>
+  <li>
+    <a class="card" href="ferrari-race-winners.html">
+      <h2>Race Winners</h2>
+      <p class="yrs">1951–2026 · 250 wins</p>
+      <p>The much shorter list of those who actually won, from González at Silverstone to Leclerc's milestone at the same circuit seventy-five years later.</p>
+    </a>
+  </li>
+</ul>
+
+<footer>
+  Sources: statsf1.com, cross-referenced with RaceFans year-by-year lineups.<br>
+  Static pages, no build step.
+</footer>
+</div>
+</body>
+</html>
