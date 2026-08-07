@@ -203,6 +203,19 @@
     body { padding: 40px 14px 72px; }
     .legend { gap: 6px 16px; font-size: 10.5px; }
     .tooltip { white-space: normal; max-width: calc(100vw - 56px); }
+
+    /* Inside the SVG these are viewBox units, not CSS pixels, so the taller
+       narrow-screen box needs all of them scaled up to stay legible. */
+    .axis-label { font-size: 36px; }
+    .decade-label { font-size: 40px; }
+    .drought-label { font-size: 38px; letter-spacing: 0; }
+    .gridline { stroke-width: 3; }
+    .zero-axis { stroke-width: 3.5; }
+    .decade-line { stroke-width: 4.5; }
+    .wcc-line { stroke-width: 8; }
+    .wdc-line { stroke-width: 6; stroke-dasharray: 15 11; }
+    .merged-dot, .title-dot { stroke-width: 3; }
+    .hover-marker { stroke-width: 5; }
   }
   .footer-note {
     margin-top: 18px;
@@ -351,10 +364,29 @@ const rows = data.map(([year, wcc, drivers]) => {
   return { year, wcc, drivers, bestDriver: best[0], wdc: wdcNumeric };
 });
 
-const W = 1400, H = 560;
-const margin = {top: 20, right: 24, bottom: 36, left: 44};
-const plotW = W - margin.left - margin.right;
-const plotH = H - margin.top - margin.bottom - 70; // reserve space for drought band labels at bottom of plot area
+// The chart is drawn in viewBox units and scaled to the container width, so on a
+// phone a 2.5:1 box collapsed to a ~130px sliver with unreadable labels. Narrow
+// screens get a much taller box and coarser geometry instead; everything below
+// derives from these, so re-running layout() and redrawing is all it takes.
+let W, H, margin, plotW, plotH, narrow, dotR, yearStep;
+
+function layout() {
+  narrow = window.innerWidth <= 620;
+  W = 1400;
+  H = narrow ? 1400 : 560;
+  margin = narrow
+    ? {top: 24, right: 26, bottom: 74, left: 78}
+    : {top: 20, right: 24, bottom: 36, left: 44};
+  plotW = W - margin.left - margin.right;
+  // reserve space for drought band labels at bottom of plot area
+  plotH = H - margin.top - margin.bottom - (narrow ? 40 : 70);
+  // dots and year-label density scale with the box, or they vanish when shrunk
+  dotR = narrow
+    ? {wcc: 9, wdc: 8, merged: 10, wccTitle: 17, wdcTitle: 16, merTitle: 17, marker: 26}
+    : {wcc: 2.6, wdc: 2.2, merged: 3, wccTitle: 5.5, wdcTitle: 5, merTitle: 5.5, marker: 7};
+  yearStep = narrow ? 10 : 5;
+}
+layout();
 
 const years = rows.map(d => d.year);
 const minYear = Math.min(...years), maxYear = Math.max(...years);
@@ -399,6 +431,15 @@ function droughts(titleYears, seriesStart, seriesEnd) {
 const wccDroughts = droughts(wccTitles, 1958, 2025);
 const wdcDroughts = droughts(wdcTitles, 1950, 2025);
 
+const tooltip = document.getElementById('tooltip');
+const chartContainer = document.querySelector('.chart-container');
+let marker, hitLayer, yearIndex;
+
+function render() {
+  layout();
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
 // === Draw drought bands (constructors' droughts, the headline ones) ===
 const bandGroup = el('g', {});
 svg.appendChild(bandGroup);
@@ -420,13 +461,13 @@ for (let p = 1; p <= maxPos; p += 1) {
   const ly = y(p);
   gridGroup.appendChild(el('line', {x1: margin.left, x2: W - margin.right, y1: ly, y2: ly, class: p===1 ? 'zero-axis' : 'gridline'}));
   if (p === 1 || p % 2 === 1 || p === maxPos) {
-    const t = el('text', {x: margin.left - 8, y: ly + 3, 'text-anchor': 'end', class: 'axis-label'});
+    const t = el('text', {x: margin.left - (narrow ? 18 : 8), y: ly + (narrow ? 11 : 3), 'text-anchor': 'end', class: 'axis-label'});
     t.textContent = p;
     svg.appendChild(t);
   }
 }
-// x-axis year ticks every 5 years
-for (let yr = 1950; yr <= 2025; yr += 5) {
+// x-axis year ticks (every 10 years when narrow — every 5 collides)
+for (let yr = 1950; yr <= 2025; yr += yearStep) {
   const lx = x(yr);
   const isDecade = yr % 10 === 0;
   gridGroup.appendChild(el('line', {
@@ -434,14 +475,15 @@ for (let yr = 1950; yr <= 2025; yr += 5) {
     class: isDecade ? 'decade-line' : 'gridline'
   }));
   const t = el('text', {
-    x: lx, y: margin.top + plotH + 16, 'text-anchor': 'middle',
+    x: lx, y: margin.top + plotH + (narrow ? 46 : 16), 'text-anchor': 'middle',
     class: isDecade ? 'axis-label decade-label' : 'axis-label'
   });
   t.textContent = yr;
   svg.appendChild(t);
 }
 // y-axis title
-const yAxisTitle = el('text', {x: 14, y: margin.top + plotH/2, 'text-anchor': 'middle', class: 'axis-label', transform: `rotate(-90, 14, ${margin.top + plotH/2})`});
+const titleX = narrow ? 24 : 14;
+const yAxisTitle = el('text', {x: titleX, y: margin.top + plotH/2, 'text-anchor': 'middle', class: 'axis-label', transform: `rotate(-90, ${titleX}, ${margin.top + plotH/2})`});
 yAxisTitle.textContent = 'Position (1 = best, 12 = worst)';
 svg.appendChild(yAxisTitle);
 
@@ -510,7 +552,7 @@ rows.forEach(r => {
   if (merged) {
     const isTitle = isWccTitle || isWdcTitle;
     const dot = el('circle', {
-      cx: x(r.year), cy: y(r.wdc), r: isTitle ? 5.5 : 3,
+      cx: x(r.year), cy: y(r.wdc), r: isTitle ? dotR.merTitle : dotR.merged,
       class: isTitle ? 'title-dot' : 'merged-dot',
     });
     dot.dataset.tooltip = tooltipHTML;
@@ -518,14 +560,14 @@ rows.forEach(r => {
   } else {
     if (r.wcc !== null) {
       const dot = el('circle', {
-        cx: x(r.year), cy: y(r.wcc), r: isWccTitle ? 5.5 : 2.6,
+        cx: x(r.year), cy: y(r.wcc), r: isWccTitle ? dotR.wccTitle : dotR.wcc,
         class: isWccTitle ? 'title-dot' : 'wcc-dot',
       });
       dot.dataset.tooltip = tooltipHTML;
       dotsGroup.appendChild(dot);
     }
     const dot = el('circle', {
-      cx: x(r.year), cy: y(r.wdc), r: isWdcTitle ? 5 : 2.2,
+      cx: x(r.year), cy: y(r.wdc), r: isWdcTitle ? dotR.wdcTitle : dotR.wdc,
       class: isWdcTitle ? 'title-dot' : 'wdc-dot',
     });
     dot.dataset.tooltip = tooltipHTML;
@@ -536,7 +578,7 @@ rows.forEach(r => {
 // === Drought labels (only the constructors' droughts, on the band) ===
 wccDroughts.forEach(([start, end, gap]) => {
   const midX = (x(start) + x(end)) / 2;
-  const t = el('text', {x: midX, y: margin.top + plotH - 8, 'text-anchor': 'middle', class: 'drought-label'});
+  const t = el('text', {x: midX, y: margin.top + plotH - (narrow ? 22 : 8), 'text-anchor': 'middle', class: 'drought-label'});
   t.textContent = `${gap}-yr drought`;
   svg.appendChild(t);
 });
@@ -548,8 +590,6 @@ wccDroughts.forEach(([start, end, gap]) => {
 // dot in a year carries the same tooltip, we can capture the pointer on a
 // transparent layer over the plot and snap to the nearest year instead — which
 // also gives mouse users a far more forgiving target.
-const tooltip = document.getElementById('tooltip');
-const chartContainer = document.querySelector('.chart-container');
 
 const byYear = new Map();
 dotsGroup.querySelectorAll('circle').forEach(c => {
@@ -558,16 +598,26 @@ dotsGroup.querySelectorAll('circle').forEach(c => {
   if (!byYear.has(key)) byYear.set(key, {cx, html: c.dataset.tooltip, ys: []});
   byYear.get(key).ys.push(parseFloat(c.getAttribute('cy')));
 });
-const yearIndex = [...byYear.values()].sort((a, b) => a.cx - b.cx);
+yearIndex = [...byYear.values()].sort((a, b) => a.cx - b.cx);
 
-const marker = el('circle', {r: 7, class: 'hover-marker'});
+marker = el('circle', {r: dotR.marker, class: 'hover-marker'});
 marker.style.opacity = 0;
 svg.appendChild(marker);
 
-const hitLayer = el('rect', {
+hitLayer = el('rect', {
   x: margin.left, y: margin.top, width: plotW, height: plotH, class: 'hit-layer',
 });
 svg.appendChild(hitLayer);
+
+// pointermove covers both cases: with a mouse it fires on hover, with a finger
+// only while it's down, which makes dragging along the chart scrub through years.
+// Re-bound on every render because the hit layer is rebuilt with the chart.
+hitLayer.addEventListener('pointerdown', e => showTooltipAt(e.clientX, e.clientY));
+hitLayer.addEventListener('pointermove', e => showTooltipAt(e.clientX, e.clientY));
+hitLayer.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hideTooltip(); });
+hitLayer.addEventListener('pointercancel', hideTooltip);   // vertical page scroll
+
+}  // === end render ===
 
 function showTooltipAt(clientX, clientY) {
   const svgRect = svg.getBoundingClientRect();
@@ -608,14 +658,20 @@ function hideTooltip() {
   marker.style.opacity = 0;
 }
 
-// pointermove covers both cases: with a mouse it fires on hover, with a finger
-// only while it's down, which makes dragging along the chart scrub through years.
-hitLayer.addEventListener('pointerdown', e => showTooltipAt(e.clientX, e.clientY));
-hitLayer.addEventListener('pointermove', e => showTooltipAt(e.clientX, e.clientY));
-hitLayer.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hideTooltip(); });
-hitLayer.addEventListener('pointercancel', hideTooltip);   // vertical page scroll
 document.addEventListener('pointerdown', e => {
   if (!chartContainer.contains(e.target)) hideTooltip();   // tap elsewhere dismisses
+});
+
+render();
+
+// Redraw only when crossing the breakpoint — a phone's address bar collapsing
+// fires resize constantly, and rebuilding ~150 nodes for that would be wasteful.
+let wasNarrow = narrow;
+window.addEventListener('resize', () => {
+  if (window.innerWidth <= 620 === wasNarrow) return;
+  wasNarrow = !wasNarrow;
+  hideTooltip();
+  render();
 });
 
 // === Drought summary list (below chart) ===
