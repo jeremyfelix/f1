@@ -103,6 +103,7 @@
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
     border-bottom: 1px solid var(--line-strong);
   }
+  .board-head span{ white-space: nowrap; }
 
   .row{
     display: grid;
@@ -160,7 +161,9 @@
     .board-head{ grid-template-columns: 26px 1fr 78px 34px; gap: 8px; }
     .row{ grid-template-columns: 26px 1fr 78px 34px; gap: 8px; }
     .driver{ font-size: 13.5px; }
-    .years{ display:none; }
+    /* hide the years column in the rows and its header together, or the header
+       ends up with more cells than the grid has columns and the last one wraps */
+    .years, .col-hide{ display:none; }
     .hero-stats{ gap: 24px; }
   }
 </style>
@@ -188,9 +191,9 @@
   <div class="board-head">
     <span>#</span>
     <span>Driver</span>
-    <span>Years</span>
-    <span>Seasons</span>
-    <span style="text-align:right">#</span>
+    <span class="col-hide">Years</span>
+    <span></span>
+    <span id="metricHead" style="text-align:right">Seasons</span>
   </div>
 
   <div id="board"></div>
@@ -306,10 +309,14 @@
   ];
 
   const board = document.getElementById('board');
+  const metricHead = document.getElementById('metricHead');
   const maxSeasons = Math.max(...data.map(d => d[3]));
   const maxGP = Math.max(...data.map(d => d[1]));
 
   function render(sortBy){
+    // the number column switches between seasons and race starts, so its
+    // heading has to switch with it
+    metricHead.textContent = sortBy === 'gp' ? 'Starts' : 'Seasons';
     const sorted = [...data].sort((a,b) => {
       if(sortBy === 'gp') return b[1] - a[1];
       return b[3] - a[3] || b[1] - a[1];
