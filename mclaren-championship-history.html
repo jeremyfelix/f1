@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McLaren F1 Championship History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141719;
+    --bg-alt: #1c2023;
+    --line: rgba(233,237,240,0.09);
+    --line-strong: rgba(233,237,240,0.18);
+    --papaya: #D96500;
+    --papaya-bright: #FF8000;
+    --blue: #47C7FC;
+    --cream: #E9EDF0;
+    --muted: #879099;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+  }
+  body {
+    background-image:
+      linear-gradient(var(--bg) 0%, var(--bg) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px);
+    padding: 64px 24px 100px;
+  }
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+  .title-block {
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin: 0 0 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content:""; width: 28px; height: 1px; background: var(--blue); display:inline-block; }
+  h1 {
+    font-size: clamp(40px, 8vw, 84px);
+    line-height: 0.9;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--cream);
+    text-transform: uppercase;
+  }
+  h1 span { color: var(--papaya-bright); }
+  .subtitle {
+    margin: 20px 0 0;
+    max-width: 600px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .hero-stats {
+    display:flex; gap: 40px; margin-top: 36px; padding-top: 26px;
+    border-top: 1px solid var(--line-strong); flex-wrap: wrap;
+  }
+  .stat .n { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; color: var(--cream); line-height: 1; }
+  .stat .n em { color: var(--papaya-bright); font-style: normal; }
+  .stat .l { margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .legend {
+    display: flex;
+    gap: 22px;
+    margin: 0 0 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    width: 22px;
+    height: 0;
+    border-top: 3px solid;
+  }
+  .swatch.dash {
+    border-top-style: dashed;
+  }
+  .swatch.dot { width: 10px; height: 10px; border-radius: 50%; border: none; }
+
+  .chart-container {
+    position: relative;
+    background: var(--bg-alt);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 10px 4px 4px 4px;
+  }
+  svg { display: block; width: 100%; height: auto; }
+
+  .axis-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: var(--muted); }
+  .gridline { stroke: rgba(233,237,240,0.06); stroke-width: 1; }
+  .zero-axis { stroke: var(--line-strong); stroke-width: 1; }
+  .decade-line { stroke: rgba(233,237,240,0.22); stroke-width: 1.4; }
+  .decade-label { font-family: 'JetBrains Mono', monospace; font-weight: 700; fill: var(--cream); font-size: 10.5px; }
+
+  .wcc-line { fill: none; stroke: var(--papaya-bright); stroke-width: 2.2; }
+  .wdc-line { fill: none; stroke: var(--cream); stroke-width: 1.6; stroke-dasharray: 4 3; }
+
+  .wcc-dot { fill: var(--papaya-bright); }
+  .wdc-dot { fill: var(--cream); }
+  .merged-dot { fill: var(--muted); stroke: var(--bg); stroke-width: 1; }
+  .title-dot { fill: var(--blue); stroke: var(--bg); stroke-width: 1; }
+
+  .drought-band { fill: rgba(255,128,0,0.05); }
+  .drought-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    fill: #9aa4ad;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #0d0f11;
+    border: 1px solid var(--line-strong);
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 8px 11px;
+    border-radius: 2px;
+    line-height: 1.55;
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+    text-align: left;
+    opacity: 0;
+    transition: opacity 0.08s;
+    z-index: 10;
+  }
+  .tooltip.below { transform: translate(-50%, 0); }
+  .tooltip strong { color: var(--blue); font-size: 12.5px; }
+
+  /* Transparent capture layer — pan-y keeps vertical page scrolling working
+     over the chart while horizontal drags scrub through years. */
+  .hit-layer { fill: transparent; cursor: crosshair; touch-action: pan-y; }
+  .hover-marker {
+    fill: none;
+    stroke: var(--cream);
+    stroke-width: 1.5;
+    pointer-events: none;
+    transition: opacity 0.08s;
+  }
+
+  .notes {
+    margin-top: 48px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .notes h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--cream);
+  }
+  .drought-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 6px;
+    margin: 6px 0 18px;
+  }
+  .drought-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 12px;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--blue);
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+  }
+  .drought-row .years { font-weight: 500; color: var(--cream); }
+  .drought-row .span { color: var(--muted); white-space: nowrap; }
+  @media (max-width: 620px) {
+    body { padding: 40px 14px 72px; }
+    .legend { gap: 6px 16px; font-size: 10.5px; }
+    .tooltip { white-space: normal; max-width: calc(100vw - 56px); }
+
+    /* Inside the SVG these are viewBox units, not CSS pixels, so the taller
+       narrow-screen box needs all of them scaled up to stay legible. */
+    .axis-label { font-size: 36px; }
+    .decade-label { font-size: 40px; }
+    .drought-label { font-size: 38px; letter-spacing: 0; }
+    .gridline { stroke-width: 3; }
+    .zero-axis { stroke-width: 3.5; }
+    .decade-line { stroke-width: 4.5; }
+    .wcc-line { stroke-width: 8; }
+    .wdc-line { stroke-width: 6; stroke-dasharray: 15 11; }
+    .merged-dot, .title-dot { stroke-width: 3; }
+    .hover-marker { stroke-width: 5; }
+  }
+  .footer-note {
+    margin-top: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="title-block">
+    <p class="eyebrow">McLaren · 1966–2025</p>
+    <h1>Championship<br>History<span>.</span></h1>
+    <p class="subtitle">Best-placed McLaren driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 16 (bottom) is worst. Blue dots mark title wins.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="n"><em>10</em></div><div class="l">Constructors' titles</div></div>
+      <div class="stat"><div class="n">13</div><div class="l">Drivers' titles</div></div>
+      <div class="stat"><div class="n">60</div><div class="l">Seasons charted</div></div>
+      <div class="stat"><div class="n">2025</div><div class="l">Last constructors' title</div></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch" style="border-color: var(--papaya-bright);"></span> Constructors' line (WCC)</div>
+    <div class="legend-item"><span class="swatch dash" style="border-color: var(--cream);"></span> Drivers' line (WDC) — best-placed McLaren driver</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--papaya-bright);"></span> Constructors' point only</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--cream);"></span> Drivers' point only</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--muted);"></span> Drivers' &amp; Constructors' tied — single point</div>
+    <div class="legend-item"><span class="swatch dot" style="background: var(--blue);"></span> Title won that year</div>
+  </div>
+
+  <div class="chart-container">
+    <svg id="chart" viewBox="0 0 1400 560" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+
+  <div class="notes">
+    <h2>Title droughts</h2>
+    <div class="drought-list" id="droughtList"></div>
+    <p class="footer-note">
+      In 2007 McLaren was excluded from the Constructors' Championship over the espionage case and finished the
+      season on zero points — shown above as a break in the constructors' line. Its drivers kept their places:
+      Lewis Hamilton and Fernando Alonso ended the year tied on points, one behind the champion. Driver
+      positions are full-season championship finishes, so a driver who split a year between teams — Peter Gethin
+      in 1971, who scored most of his points after moving to BRM — carries points earned elsewhere. Sources:
+      Wikipedia, McLaren Grand Prix results cross-referenced with the season championship standings, 1966–2025.
+    </p>
+  </div>
+
+</div>
+
+<script>
+// Each row: [year, WCC position (null when the team has no classified finish), [[driverName, driverPosition], ...], excluded]
+// driverPosition is a number, or the string "WC" for champion.
+// Drivers are listed in order of finishing position (best first).
+// The fourth element, when present, flags a season where the team was excluded from the WCC.
+const data = [
+  [1966, 9, [["Bruce McLaren", 14]]],
+  [1967, 10, [["Bruce McLaren", 14]]],
+  [1968, 2, [["Denny Hulme", 3], ["Bruce McLaren", 5]]],
+  [1969, 5, [["Bruce McLaren", 3], ["Denny Hulme", 6]]],
+  [1970, 5, [["Denny Hulme", 4], ["Bruce McLaren", 14]]],
+  [1971, 6, [["Peter Gethin", 9], ["Denny Hulme", 13]]],
+  [1972, 3, [["Denny Hulme", 3], ["Peter Revson", 5]]],
+  [1973, 3, [["Peter Revson", 5], ["Denny Hulme", 6]]],
+  [1974, 1, [["Emerson Fittipaldi", "WC"], ["Denny Hulme", 7]]],
+  [1975, 3, [["Emerson Fittipaldi", 2], ["Jochen Mass", 8]]],
+  [1976, 2, [["James Hunt", "WC"], ["Jochen Mass", 9]]],
+  [1977, 3, [["James Hunt", 5], ["Jochen Mass", 6]]],
+  [1978, 8, [["James Hunt", 13], ["Patrick Tambay", 13]]],
+  [1979, 7, [["John Watson", 9], ["Patrick Tambay", 21]]],
+  [1980, 9, [["John Watson", 11], ["Alain Prost", 16]]],
+  [1981, 6, [["John Watson", 6], ["Andrea de Cesaris", 18]]],
+  [1982, 2, [["John Watson", 3], ["Niki Lauda", 5]]],
+  [1983, 5, [["John Watson", 6], ["Niki Lauda", 10]]],
+  [1984, 1, [["Niki Lauda", "WC"], ["Alain Prost", 2]]],
+  [1985, 1, [["Alain Prost", "WC"], ["Niki Lauda", 10]]],
+  [1986, 2, [["Alain Prost", "WC"], ["Keke Rosberg", 6]]],
+  [1987, 2, [["Alain Prost", 4], ["Stefan Johansson", 6]]],
+  [1988, 1, [["Ayrton Senna", "WC"], ["Alain Prost", 2]]],
+  [1989, 1, [["Alain Prost", "WC"], ["Ayrton Senna", 2]]],
+  [1990, 1, [["Ayrton Senna", "WC"], ["Gerhard Berger", 4]]],
+  [1991, 1, [["Ayrton Senna", "WC"], ["Gerhard Berger", 4]]],
+  [1992, 2, [["Ayrton Senna", 4], ["Gerhard Berger", 5]]],
+  [1993, 2, [["Ayrton Senna", 2], ["Michael Andretti", 11]]],
+  [1994, 4, [["Mika Häkkinen", 4], ["Martin Brundle", 7]]],
+  [1995, 4, [["Mika Häkkinen", 7], ["Mark Blundell", 10]]],
+  [1996, 4, [["Mika Häkkinen", 5], ["David Coulthard", 7]]],
+  [1997, 4, [["David Coulthard", 3], ["Mika Häkkinen", 6]]],
+  [1998, 1, [["Mika Häkkinen", "WC"], ["David Coulthard", 3]]],
+  [1999, 2, [["Mika Häkkinen", "WC"], ["David Coulthard", 4]]],
+  [2000, 2, [["Mika Häkkinen", 2], ["David Coulthard", 3]]],
+  [2001, 2, [["David Coulthard", 2], ["Mika Häkkinen", 5]]],
+  [2002, 3, [["David Coulthard", 5], ["Kimi Räikkönen", 6]]],
+  [2003, 3, [["Kimi Räikkönen", 2], ["David Coulthard", 7]]],
+  [2004, 5, [["Kimi Räikkönen", 7], ["David Coulthard", 10]]],
+  [2005, 2, [["Kimi Räikkönen", 2], ["Juan Pablo Montoya", 4]]],
+  [2006, 3, [["Kimi Räikkönen", 5], ["Juan Pablo Montoya", 8]]],
+  [2007, null, [["Lewis Hamilton", 2], ["Fernando Alonso", 3]], true],
+  [2008, 2, [["Lewis Hamilton", "WC"], ["Heikki Kovalainen", 7]]],
+  [2009, 3, [["Lewis Hamilton", 5], ["Heikki Kovalainen", 12]]],
+  [2010, 2, [["Lewis Hamilton", 4], ["Jenson Button", 5]]],
+  [2011, 2, [["Jenson Button", 2], ["Lewis Hamilton", 5]]],
+  [2012, 3, [["Lewis Hamilton", 4], ["Jenson Button", 5]]],
+  [2013, 5, [["Jenson Button", 9], ["Sergio Pérez", 11]]],
+  [2014, 5, [["Jenson Button", 8], ["Kevin Magnussen", 11]]],
+  [2015, 9, [["Jenson Button", 16], ["Fernando Alonso", 17]]],
+  [2016, 6, [["Fernando Alonso", 10], ["Jenson Button", 15]]],
+  [2017, 9, [["Fernando Alonso", 15], ["Stoffel Vandoorne", 16]]],
+  [2018, 6, [["Fernando Alonso", 11], ["Stoffel Vandoorne", 16]]],
+  [2019, 4, [["Carlos Sainz Jr.", 6], ["Lando Norris", 11]]],
+  [2020, 3, [["Carlos Sainz Jr.", 6], ["Lando Norris", 9]]],
+  [2021, 4, [["Lando Norris", 6], ["Daniel Ricciardo", 8]]],
+  [2022, 5, [["Lando Norris", 7], ["Daniel Ricciardo", 11]]],
+  [2023, 4, [["Lando Norris", 6], ["Oscar Piastri", 9]]],
+  [2024, 1, [["Lando Norris", 2], ["Oscar Piastri", 4]]],
+  [2025, 1, [["Lando Norris", "WC"], ["Oscar Piastri", 3]]],
+];
+
+// Derive WDC (best driver position) per year for the line/series math.
+// "WC" counts as 1.
+function posValue(p) {
+  if (p === "WC") return 1;
+  return p;
+}
+const rows = data.map(([year, wcc, drivers, excluded]) => {
+  const best = drivers.reduce((a, b) => posValue(a[1]) <= posValue(b[1]) ? a : b);
+  return { year, wcc, drivers, excluded: !!excluded, bestDriver: best[0], wdc: posValue(best[1]) };
+});
+
+// The chart is drawn in viewBox units and scaled to the container width, so on a
+// phone a 2.5:1 box collapsed to a ~130px sliver with unreadable labels. Narrow
+// screens get a much taller box and coarser geometry instead; everything below
+// derives from these, so re-running layout() and redrawing is all it takes.
+let W, H, margin, plotW, plotH, narrow, dotR, yearStep;
+
+function layout() {
+  narrow = window.innerWidth <= 620;
+  W = 1400;
+  H = narrow ? 1400 : 560;
+  margin = narrow
+    ? {top: 24, right: 26, bottom: 74, left: 78}
+    : {top: 20, right: 24, bottom: 36, left: 44};
+  plotW = W - margin.left - margin.right;
+  // reserve space for drought band labels at bottom of plot area
+  plotH = H - margin.top - margin.bottom - (narrow ? 40 : 70);
+  // dots and year-label density scale with the box, or they vanish when shrunk
+  dotR = narrow
+    ? {wcc: 9, wdc: 8, merged: 10, wccTitle: 17, wdcTitle: 16, merTitle: 17, marker: 26}
+    : {wcc: 2.6, wdc: 2.2, merged: 3, wccTitle: 5.5, wdcTitle: 5, merTitle: 5.5, marker: 7};
+  yearStep = narrow ? 10 : 5;
+}
+layout();
+
+const years = rows.map(d => d.year);
+const minYear = Math.min(...years), maxYear = Math.max(...years);
+const maxPos = 16; // y-axis max (positions go 1..16, lower=better, drawn inverted)
+
+function x(year) {
+  return margin.left + (year - minYear) / (maxYear - minYear) * plotW;
+}
+function y(pos) {
+  // pos=1 at top, pos=maxPos at bottom
+  return margin.top + (pos - 1) / (maxPos - 1) * plotH;
+}
+
+const svg = document.getElementById('chart');
+const ns = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs) {
+  const e = document.createElementNS(ns, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+// Drought periods: constructors' (WCC=1) gaps and drivers' (WDC=1) gaps
+const wccTitles = [1974,1984,1985,1988,1989,1990,1991,1998,2024,2025];
+const wdcTitles = [1974,1976,1984,1985,1986,1988,1989,1990,1991,1998,1999,2008,2025];
+
+function droughts(titleYears, seriesStart, seriesEnd) {
+  const sorted = [...titleYears].sort((a,b)=>a-b);
+  const gaps = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const gap = sorted[i+1] - sorted[i] - 1;
+    if (gap >= 5) gaps.push([sorted[i]+1, sorted[i+1]-1, gap]);
+  }
+  // trailing drought to present
+  const lastGap = seriesEnd - sorted[sorted.length-1];
+  if (lastGap >= 5) gaps.push([sorted[sorted.length-1]+1, seriesEnd, lastGap]);
+  return gaps;
+}
+
+const wccDroughts = droughts(wccTitles, 1966, 2025);
+const wdcDroughts = droughts(wdcTitles, 1966, 2025);
+
+const tooltip = document.getElementById('tooltip');
+const chartContainer = document.querySelector('.chart-container');
+let marker, hitLayer, yearIndex;
+
+function render() {
+  layout();
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+// === Draw drought bands (constructors' droughts, the headline ones) ===
+const bandGroup = el('g', {});
+svg.appendChild(bandGroup);
+wccDroughts.forEach(([start, end, gap]) => {
+  const rect = el('rect', {
+    x: x(start) - (x(start)-x(start-1))/2,
+    y: margin.top,
+    width: x(end) - x(start) + (x(start+1)-x(start)),
+    height: plotH,
+    class: 'drought-band'
+  });
+  bandGroup.appendChild(rect);
+});
+
+// === Gridlines & axis ===
+const gridGroup = el('g', {});
+svg.appendChild(gridGroup);
+for (let p = 1; p <= maxPos; p += 1) {
+  const ly = y(p);
+  gridGroup.appendChild(el('line', {x1: margin.left, x2: W - margin.right, y1: ly, y2: ly, class: p===1 ? 'zero-axis' : 'gridline'}));
+  if (p === 1 || p % 2 === 1 || p === maxPos) {
+    const t = el('text', {x: margin.left - (narrow ? 18 : 8), y: ly + (narrow ? 11 : 3), 'text-anchor': 'end', class: 'axis-label'});
+    t.textContent = p;
+    svg.appendChild(t);
+  }
+}
+// x-axis year ticks (every 10 years when narrow — every 5 collides). Starts at
+// 1970 rather than McLaren's 1966 debut so the ticks land on round years and the
+// decade lines stay aligned with their labels.
+for (let yr = 1970; yr <= 2025; yr += yearStep) {
+  const lx = x(yr);
+  const isDecade = yr % 10 === 0;
+  gridGroup.appendChild(el('line', {
+    x1: lx, x2: lx, y1: margin.top, y2: margin.top + plotH,
+    class: isDecade ? 'decade-line' : 'gridline'
+  }));
+  const t = el('text', {
+    x: lx, y: margin.top + plotH + (narrow ? 46 : 16), 'text-anchor': 'middle',
+    class: isDecade ? 'axis-label decade-label' : 'axis-label'
+  });
+  t.textContent = yr;
+  svg.appendChild(t);
+}
+// y-axis title
+const titleX = narrow ? 24 : 14;
+const yAxisTitle = el('text', {x: titleX, y: margin.top + plotH/2, 'text-anchor': 'middle', class: 'axis-label', transform: `rotate(-90, ${titleX}, ${margin.top + plotH/2})`});
+yAxisTitle.textContent = 'Position (1 = best, 16 = worst)';
+svg.appendChild(yAxisTitle);
+
+// === Lines ===
+function buildPath(getVal) {
+  let d = '';
+  let started = false;
+  rows.forEach(r => {
+    const val = getVal(r);
+    if (val === null || val === undefined || !isFinite(val)) { started = false; return; }
+    const cmd = started ? 'L' : 'M';
+    d += `${cmd}${x(r.year)},${y(val)} `;
+    started = true;
+  });
+  return d.trim();
+}
+
+svg.appendChild(el('path', {d: buildPath(r => r.wcc), class: 'wcc-line'}));
+svg.appendChild(el('path', {d: buildPath(r => r.wdc), class: 'wdc-line'}));
+
+// === Points ===
+// Each year gets at most two visual markers: one for the WCC position, one for the WDC
+// (best driver) position. If they coincide at the same y, we draw a single merged dot.
+const dotsGroup = el('g', {});
+svg.appendChild(dotsGroup);
+
+function driverLine(d) {
+  // d = [name, position] ; renders "Name — P3" / "Name — Champion"
+  const [name, pos] = d;
+  const label = pos === "WC" ? "Champion" : `P${pos}`;
+  return `${name} — ${label}`;
+}
+
+function buildTooltipHTML(r) {
+  const isWccTitle = r.wcc === 1;
+  const isChamp = r.drivers.some(d => d[1] === "WC");
+  const champDriver = isChamp ? r.drivers.find(d => d[1] === "WC") : null;
+  const driverLines = r.drivers.map(driverLine).join('<br>');
+  const hasWcc = r.wcc !== null;
+
+  let lines = [];
+  lines.push(`<strong>${r.year}</strong>`);
+
+  if (isChamp) {
+    // Champion year: driver + position, constructors' place, then both drivers' places
+    lines.push(`${champDriver[0]} — World Champion`);
+    if (hasWcc) lines.push(`Constructors: P${r.wcc}${isWccTitle ? ' (Champions)' : ''}`);
+    lines.push(driverLines);
+  } else if (hasWcc) {
+    // Constructors' point present, not a championship-winning year
+    lines.push(`Constructors: P${r.wcc}`);
+    lines.push(driverLines);
+  } else if (r.excluded) {
+    // 2007: stripped of its constructors' points, so there is no WCC point to plot
+    lines.push(`Constructors: excluded`);
+    lines.push(driverLines);
+  } else {
+    lines.push(driverLines);
+  }
+  return lines.join('<br>');
+}
+
+rows.forEach(r => {
+  const isWccTitle = r.wcc === 1;
+  const isWdcTitle = r.drivers.some(d => d[1] === "WC");
+  const merged = (r.wcc !== null && r.wcc === r.wdc);
+  const tooltipHTML = buildTooltipHTML(r);
+
+  if (merged) {
+    const isTitle = isWccTitle || isWdcTitle;
+    const dot = el('circle', {
+      cx: x(r.year), cy: y(r.wdc), r: isTitle ? dotR.merTitle : dotR.merged,
+      class: isTitle ? 'title-dot' : 'merged-dot',
+    });
+    dot.dataset.tooltip = tooltipHTML;
+    dotsGroup.appendChild(dot);
+  } else {
+    if (r.wcc !== null) {
+      const dot = el('circle', {
+        cx: x(r.year), cy: y(r.wcc), r: isWccTitle ? dotR.wccTitle : dotR.wcc,
+        class: isWccTitle ? 'title-dot' : 'wcc-dot',
+      });
+      dot.dataset.tooltip = tooltipHTML;
+      dotsGroup.appendChild(dot);
+    }
+    const dot = el('circle', {
+      cx: x(r.year), cy: y(r.wdc), r: isWdcTitle ? dotR.wdcTitle : dotR.wdc,
+      class: isWdcTitle ? 'title-dot' : 'wdc-dot',
+    });
+    dot.dataset.tooltip = tooltipHTML;
+    dotsGroup.appendChild(dot);
+  }
+});
+
+// === Drought labels (only the constructors' droughts, on the band) ===
+wccDroughts.forEach(([start, end, gap]) => {
+  const midX = (x(start) + x(end)) / 2;
+  const t = el('text', {x: midX, y: margin.top + plotH - (narrow ? 22 : 8), 'text-anchor': 'middle', class: 'drought-label'});
+  t.textContent = `${gap}-yr drought`;
+  svg.appendChild(t);
+});
+
+// === Tooltip interactivity ===
+// Hit-testing the circles themselves only ever worked with a mouse: once the
+// 1400-unit viewBox is scaled down to a phone, a 2.2-unit dot is about one CSS
+// pixel across, and mouseenter/mouseleave don't fire on tap anyway. Since every
+// dot in a year carries the same tooltip, we can capture the pointer on a
+// transparent layer over the plot and snap to the nearest year instead — which
+// also gives mouse users a far more forgiving target.
+
+const byYear = new Map();
+dotsGroup.querySelectorAll('circle').forEach(c => {
+  const cx = parseFloat(c.getAttribute('cx'));
+  const key = Math.round(cx * 100);
+  if (!byYear.has(key)) byYear.set(key, {cx, html: c.dataset.tooltip, ys: []});
+  byYear.get(key).ys.push(parseFloat(c.getAttribute('cy')));
+});
+yearIndex = [...byYear.values()].sort((a, b) => a.cx - b.cx);
+
+marker = el('circle', {r: dotR.marker, class: 'hover-marker'});
+marker.style.opacity = 0;
+svg.appendChild(marker);
+
+hitLayer = el('rect', {
+  x: margin.left, y: margin.top, width: plotW, height: plotH, class: 'hit-layer',
+});
+svg.appendChild(hitLayer);
+
+// pointermove covers both cases: with a mouse it fires on hover, with a finger
+// only while it's down, which makes dragging along the chart scrub through years.
+// Re-bound on every render because the hit layer is rebuilt with the chart.
+hitLayer.addEventListener('pointerdown', e => showTooltipAt(e.clientX, e.clientY));
+hitLayer.addEventListener('pointermove', e => showTooltipAt(e.clientX, e.clientY));
+hitLayer.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hideTooltip(); });
+hitLayer.addEventListener('pointercancel', hideTooltip);   // vertical page scroll
+
+}  // === end render ===
+
+function showTooltipAt(clientX, clientY) {
+  const svgRect = svg.getBoundingClientRect();
+  const contRect = chartContainer.getBoundingClientRect();
+  const scale = svgRect.width / W;
+  if (!scale) return;
+  const sx = (clientX - svgRect.left) / scale;
+  const sy = (clientY - svgRect.top) / scale;
+
+  let best = null;
+  for (const yr of yearIndex) {
+    const d = Math.abs(yr.cx - sx);
+    if (best === null || d < best.d) best = {d, yr};
+  }
+  if (!best) return;
+  const yr = best.yr;
+  const cy = yr.ys.reduce((a, b) => (Math.abs(b - sy) < Math.abs(a - sy) ? b : a));
+
+  tooltip.innerHTML = yr.html;
+  marker.setAttribute('cx', yr.cx);
+  marker.setAttribute('cy', cy);
+  marker.style.opacity = 1;
+  tooltip.style.opacity = 1;
+
+  // Anchor to the dot, then keep the card inside the chart on narrow screens.
+  const px = (svgRect.left - contRect.left) + yr.cx * scale;
+  const py = (svgRect.top - contRect.top) + cy * scale;
+  const halfW = tooltip.offsetWidth / 2;
+  tooltip.style.left = Math.max(halfW + 4, Math.min(contRect.width - halfW - 4, px)) + 'px';
+
+  const flip = py - tooltip.offsetHeight - 10 < 0;   // no room above — drop below
+  tooltip.classList.toggle('below', flip);
+  tooltip.style.top = (flip ? py + 14 : py - 10) + 'px';
+}
+
+function hideTooltip() {
+  tooltip.style.opacity = 0;
+  marker.style.opacity = 0;
+}
+
+document.addEventListener('pointerdown', e => {
+  if (!chartContainer.contains(e.target)) hideTooltip();   // tap elsewhere dismisses
+});
+
+render();
+
+// Redraw only when crossing the breakpoint — a phone's address bar collapsing
+// fires resize constantly, and rebuilding ~150 nodes for that would be wasteful.
+let wasNarrow = narrow;
+window.addEventListener('resize', () => {
+  if (window.innerWidth <= 620 === wasNarrow) return;
+  wasNarrow = !wasNarrow;
+  hideTooltip();
+  render();
+});
+
+// === Drought summary list (below chart) ===
+const droughtListEl = document.getElementById('droughtList');
+const allDroughts = wccDroughts.map(d => ({...{start:d[0], end:d[1], gap:d[2]}, type: 'Constructors’'}))
+  .concat(wdcDroughts.map(d => ({start:d[0], end:d[1], gap:d[2], type: 'Drivers’'})))
+  .sort((a,b) => a.start - b.start);
+
+allDroughts.forEach(d => {
+  const row = document.createElement('div');
+  row.className = 'drought-row';
+  const endLabel = d.end >= 2025 ? '2025 (ongoing)' : d.end;
+  row.innerHTML = `<span class="years">${d.type} title drought: ${d.start}–${endLabel}</span><span class="span">${d.gap} years</span>`;
+  droughtListEl.appendChild(row);
+});
+</script>
+</body>
+</html>
