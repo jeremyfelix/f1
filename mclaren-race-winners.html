@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McLaren — Race Winners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #141719;
+    --bg-alt: #1c2023;
+    --line: rgba(233,237,240,0.09);
+    --line-strong: rgba(233,237,240,0.18);
+    --papaya: #D96500;
+    --papaya-bright: #FF8000;
+    --blue: #47C7FC;
+    --cream: #E9EDF0;
+    --muted: #879099;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+  }
+
+  body{
+    background-image:
+      linear-gradient(var(--bg) 0%, var(--bg) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--line) 39px, var(--line) 40px);
+    padding: 64px 24px 100px;
+  }
+
+  .page{
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    margin-bottom: 56px;
+    position: relative;
+  }
+
+  .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin: 0 0 18px;
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+
+  .eyebrow::before{
+    content:"";
+    width: 28px;
+    height: 1px;
+    background: var(--blue);
+    display:inline-block;
+  }
+
+  h1{
+    font-size: clamp(52px, 10vw, 108px);
+    line-height: 0.86;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--cream);
+    text-transform: uppercase;
+  }
+
+  h1 span{
+    color: var(--papaya-bright);
+  }
+
+  .sub{
+    margin-top: 20px;
+    max-width: 520px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .hero-stats{
+    display:flex;
+    gap: 48px;
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line-strong);
+    flex-wrap: wrap;
+  }
+
+  .stat .n{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1;
+  }
+  .stat .n em{
+    color: var(--papaya-bright);
+    font-style: normal;
+  }
+  .stat .l{
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- Board ---------- */
+  .board-head{
+    display: grid;
+    grid-template-columns: 44px 1fr 210px 56px;
+    gap: 18px;
+    padding: 0 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .row{
+    display: grid;
+    grid-template-columns: 44px 1fr 210px 56px;
+    gap: 18px;
+    align-items: center;
+    padding: 13px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .row:hover{
+    background: var(--bg-alt);
+  }
+
+  .rank{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .row.top .rank{ color: var(--blue); }
+
+  .driver{
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--cream);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .row.top .driver{ font-weight: 700; }
+
+  /* Tachometer-style gauge bar */
+  .gauge{
+    position: relative;
+    height: 14px;
+    background:
+      repeating-linear-gradient(90deg,
+        transparent, transparent 9px,
+        var(--line-strong) 9px, var(--line-strong) 10px);
+    border-radius: 1px;
+  }
+
+  .gauge .fill{
+    position: absolute;
+    inset: 0;
+    width: var(--pct);
+    background: linear-gradient(90deg, var(--papaya) 0%, var(--papaya-bright) 70%, var(--blue) 100%);
+    border-radius: 1px;
+  }
+
+  .gauge .redline{
+    position:absolute;
+    top: -3px;
+    bottom: -3px;
+    left: 84%;
+    width: 1px;
+    background: rgba(233,237,240,0.25);
+  }
+
+  .wins{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: right;
+    color: var(--cream);
+  }
+
+  .row.top .wins{ color: var(--papaya-bright); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line-strong);
+    display:flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  footer a{ color: var(--blue); text-decoration: none; }
+  footer a:hover{ text-decoration: underline; }
+
+  @media (max-width: 620px){
+    .board-head{ grid-template-columns: 30px 1fr 90px 44px; gap: 10px; }
+    .row{ grid-template-columns: 30px 1fr 90px 44px; gap: 10px; }
+    .driver{ font-size: 15px; }
+    .hero-stats{ gap: 30px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="eyebrow">McLaren · 1966–2026</p>
+    <h1>Race<br>Winners<span>.</span></h1>
+    <p class="sub">Every driver who has taken a Grand Prix victory in a McLaren, ranked by wins, from Bruce McLaren winning at Spa in 1968 in a car bearing his own name to Lando Norris's victory in Hungary in July 2026.</p>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="n"><em>204</em></div>
+        <div class="l">Total wins</div>
+      </div>
+      <div class="stat">
+        <div class="n">22</div>
+        <div class="l">Winning drivers</div>
+      </div>
+      <div class="stat">
+        <div class="n">35</div>
+        <div class="l">Most by one driver</div>
+      </div>
+      <div class="stat">
+        <div class="n">40</div>
+        <div class="l">Years of victories</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="board-head">
+    <span>#</span>
+    <span>Driver</span>
+    <span></span>
+    <span style="text-align:right">Wins</span>
+  </div>
+
+  <div id="board"></div>
+
+  <footer>
+    <span>Source: Wikipedia — McLaren Grand Prix results, works entries</span>
+    <span>Bar scaled to Senna's 35 wins</span>
+  </footer>
+
+</div>
+
+<script>
+  const data = [
+    ["Ayrton Senna", 35],
+    ["Alain Prost", 30],
+    ["Lewis Hamilton", 21],
+    ["Mika Häkkinen", 20],
+    ["David Coulthard", 12],
+    ["Lando Norris", 12],
+    ["James Hunt", 9],
+    ["Kimi Räikkönen", 9],
+    ["Oscar Piastri", 9],
+    ["Niki Lauda", 8],
+    ["Jenson Button", 8],
+    ["Denny Hulme", 6],
+    ["Emerson Fittipaldi", 5],
+    ["John Watson", 4],
+    ["Fernando Alonso", 4],
+    ["Gerhard Berger", 3],
+    ["Juan Pablo Montoya", 3],
+    ["Peter Revson", 2],
+    ["Bruce McLaren", 1],
+    ["Jochen Mass", 1],
+    ["Heikki Kovalainen", 1],
+    ["Daniel Ricciardo", 1],
+  ];
+
+  const max = Math.max(...data.map(d => d[1]));
+  const board = document.getElementById('board');
+
+  data.forEach((d, i) => {
+    const [name, wins] = d;
+    const pct = (wins / max * 100).toFixed(1) + '%';
+    const row = document.createElement('div');
+    row.className = 'row' + (i < 3 ? ' top' : '');
+    row.innerHTML = `
+      <span class="rank">${String(i + 1).padStart(2,'0')}</span>
+      <span class="driver">${name}</span>
+      <span class="gauge"><span class="fill" style="--pct:${pct}"></span><span class="redline"></span></span>
+      <span class="wins">${wins}</span>
+    `;
+    board.appendChild(row);
+  });
+</script>
+</body>
+</html>
