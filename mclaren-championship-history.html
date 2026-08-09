@@ -197,8 +197,19 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 11.5px;
   }
+  /* the "neither title" spells are the ones drawn as bands on the chart, so they
+     carry the band's papaya rather than the blue used for single-championship gaps */
+  .drought-row.any { border-left-color: var(--papaya-bright); }
   .drought-row .years { font-weight: 500; color: var(--cream); }
   .drought-row .span { color: var(--muted); white-space: nowrap; }
+  .drought-lead {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin: 0 0 12px;
+    max-width: 78ch;
+  }
   @media (max-width: 620px) {
     body { padding: 40px 14px 72px; }
     .legend { gap: 6px 16px; font-size: 10.5px; }
@@ -232,7 +243,7 @@
   <div class="title-block">
     <p class="eyebrow">McLaren · 1966–2025</p>
     <h1>Championship<br>History<span>.</span></h1>
-    <p class="subtitle">Best-placed McLaren driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 16 (bottom) is worst. Blue dots mark title wins.</p>
+    <p class="subtitle">Best-placed McLaren driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 16 (bottom) is worst. Blue dots mark title wins; shaded bands are the runs of seasons when McLaren won neither championship.</p>
     <div class="hero-stats">
       <div class="stat"><div class="n"><em>10</em></div><div class="l">Constructors' titles</div></div>
       <div class="stat"><div class="n">13</div><div class="l">Drivers' titles</div></div>
@@ -257,8 +268,14 @@
 
   <div class="notes">
     <h2>Title droughts</h2>
+    <p class="drought-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which
+      McLaren won neither championship. The single-championship gaps below them run longer, because each one can be
+      interrupted by the other title: Hunt in 1976, Häkkinen in 1999 and Hamilton in 2008 all fall inside a
+      constructors' drought, and Hamilton's win splits the 25-year one into the two shorter bands shown above.</p>
     <div class="drought-list" id="droughtList"></div>
     <p class="footer-note">
+      Bands mark gaps between titles of either kind, so a title win can never sit inside one; banding on the
+      constructors' championship alone would have put Hamilton's 2008 title in the middle of a shaded 25-year run.
       In 2007 McLaren was excluded from the Constructors' Championship over the espionage case and finished the
       season on zero points — shown above as a break in the constructors' line. Its drivers kept their places:
       Lewis Hamilton and Fernando Alonso ended the year tied on points, one behind the champion. Driver
@@ -363,8 +380,9 @@ function layout() {
     ? {top: 24, right: 26, bottom: 74, left: 78}
     : {top: 20, right: 24, bottom: 36, left: 44};
   plotW = W - margin.left - margin.right;
-  // reserve space for drought band labels at bottom of plot area
-  plotH = H - margin.top - margin.bottom - (narrow ? 40 : 70);
+  // Drought labels sit at the top of their band now, so the old bottom reserve is
+  // gone and the plot uses the full box — worth it with a 16-position y-axis.
+  plotH = H - margin.top - margin.bottom;
   // dots and year-label density scale with the box, or they vanish when shrunk
   dotR = narrow
     ? {wcc: 9, wdc: 8, merged: 10, wccTitle: 17, wdcTitle: 16, merTitle: 17, marker: 26}
@@ -411,6 +429,12 @@ function droughts(titleYears, seriesStart, seriesEnd) {
   return gaps;
 }
 
+// Banding on constructors' droughts alone put title dots inside "drought" bands —
+// Hamilton's 2008 sat in the middle of one. The bands below are instead the gaps
+// between titles of *either* kind, so by construction no title can fall in one.
+const anyTitles = [...new Set([...wccTitles, ...wdcTitles])].sort((a,b) => a - b);
+
+const anyDroughts = droughts(anyTitles, 1966, 2025);
 const wccDroughts = droughts(wccTitles, 1966, 2025);
 const wdcDroughts = droughts(wdcTitles, 1966, 2025);
 
@@ -423,10 +447,10 @@ function render() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-// === Draw drought bands (constructors' droughts, the headline ones) ===
+// === Draw drought bands (spells without a title of either kind) ===
 const bandGroup = el('g', {});
 svg.appendChild(bandGroup);
-wccDroughts.forEach(([start, end, gap]) => {
+anyDroughts.forEach(([start, end, gap]) => {
   const rect = el('rect', {
     x: x(start) - (x(start)-x(start-1))/2,
     y: margin.top,
@@ -563,11 +587,16 @@ rows.forEach(r => {
   }
 });
 
-// === Drought labels (only the constructors' droughts, on the band) ===
-wccDroughts.forEach(([start, end, gap]) => {
+// === Drought labels (on the bands) ===
+anyDroughts.forEach(([start, end, gap]) => {
   const midX = (x(start) + x(end)) / 2;
-  const t = el('text', {x: midX, y: margin.top + plotH - (narrow ? 22 : 8), 'text-anchor': 'middle', class: 'drought-label'});
-  t.textContent = `${gap}-yr drought`;
+  // Anchored just under the P1 line: inside a band McLaren won neither championship,
+  // so neither series can reach position 1 there and the label can never collide.
+  const t = el('text', {x: midX, y: margin.top + (narrow ? 48 : 14), 'text-anchor': 'middle', class: 'drought-label'});
+  // On a phone the full caption is far wider than the band it belongs to — the
+  // 1992–97 band is ~130 viewBox units and the caption ~420 — so neighbouring
+  // labels collide. The list below the chart carries the full wording anyway.
+  t.textContent = narrow ? `${gap}y` : `${gap}-yr drought`;
   svg.appendChild(t);
 });
 
@@ -664,15 +693,23 @@ window.addEventListener('resize', () => {
 
 // === Drought summary list (below chart) ===
 const droughtListEl = document.getElementById('droughtList');
-const allDroughts = wccDroughts.map(d => ({...{start:d[0], end:d[1], gap:d[2]}, type: 'Constructors’'}))
-  .concat(wdcDroughts.map(d => ({start:d[0], end:d[1], gap:d[2], type: 'Drivers’'})))
-  .sort((a,b) => a.start - b.start);
+// Grouped rather than interleaved by date: the "neither title" spells are what the
+// chart draws, and reading them as a block makes the overlap with the single-
+// championship gaps underneath obvious.
+const label = (arr, text, cls) =>
+  arr.map(d => ({start: d[0], end: d[1], gap: d[2], text, cls}));
+
+const allDroughts = [
+  ...label(anyDroughts, 'No title of either kind', 'any'),
+  ...label(wccDroughts, 'No constructors’ title', ''),
+  ...label(wdcDroughts, 'No drivers’ title', ''),
+];
 
 allDroughts.forEach(d => {
   const row = document.createElement('div');
-  row.className = 'drought-row';
+  row.className = 'drought-row' + (d.cls ? ' ' + d.cls : '');
   const endLabel = d.end >= 2025 ? '2025 (ongoing)' : d.end;
-  row.innerHTML = `<span class="years">${d.type} title drought: ${d.start}–${endLabel}</span><span class="span">${d.gap} years</span>`;
+  row.innerHTML = `<span class="years">${d.text} — ${d.start}–${endLabel}</span><span class="span">${d.gap} years</span>`;
   droughtListEl.appendChild(row);
 });
 </script>
