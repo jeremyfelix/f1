@@ -197,8 +197,19 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 11.5px;
   }
+  /* the "neither title" spells are the ones drawn as bands on the chart, so they
+     carry the band's red rather than the gold used for single-championship gaps */
+  .drought-row.any { border-left-color: var(--red-bright); }
   .drought-row .years { font-weight: 500; color: var(--cream); }
   .drought-row .span { color: var(--muted); white-space: nowrap; }
+  .drought-lead {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin: 0 0 12px;
+    max-width: 78ch;
+  }
   @media (max-width: 620px) {
     body { padding: 40px 14px 72px; }
     .legend { gap: 6px 16px; font-size: 10.5px; }
@@ -232,7 +243,7 @@
   <div class="title-block">
     <p class="eyebrow">Scuderia Ferrari · 1950–2025</p>
     <h1>Championship<br>History<span>.</span></h1>
-    <p class="subtitle">Best-placed Ferrari driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 12 (bottom) is worst. Gold dots mark title wins.</p>
+    <p class="subtitle">Best-placed Ferrari driver (Drivers' Championship) vs. team finish (Constructors' Championship), by year. Position 1 (top) is best; position 12 (bottom) is worst. Gold dots mark title wins; shaded bands are the runs of seasons when Ferrari won neither championship.</p>
     <div class="hero-stats">
       <div class="stat"><div class="n"><em>16</em></div><div class="l">Constructors' titles</div></div>
       <div class="stat"><div class="n">15</div><div class="l">Drivers' titles</div></div>
@@ -257,6 +268,10 @@
 
   <div class="notes">
     <h2>Title droughts</h2>
+    <p class="drought-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which
+      Ferrari won neither championship. Single-championship gaps are listed after them only where they differ — and
+      no constructors' gap does, because every one of Ferrari's has been total. That is not true of every team:
+      McLaren's 25-year constructors' drought was broken mid-way by Hamilton's 2008 drivers' title.</p>
     <div class="drought-list" id="droughtList"></div>
     <p class="footer-note">
       The Constructors' Championship (WCC) didn't exist before 1958, so 1950–1957 shows only the Drivers' line.
@@ -378,8 +393,9 @@ function layout() {
     ? {top: 24, right: 26, bottom: 74, left: 78}
     : {top: 20, right: 24, bottom: 36, left: 44};
   plotW = W - margin.left - margin.right;
-  // reserve space for drought band labels at bottom of plot area
-  plotH = H - margin.top - margin.bottom - (narrow ? 40 : 70);
+  // Drought labels sit at the top of their band now, so the old bottom reserve is
+  // gone and the plot uses the full box.
+  plotH = H - margin.top - margin.bottom;
   // dots and year-label density scale with the box, or they vanish when shrunk
   dotR = narrow
     ? {wcc: 9, wdc: 8, merged: 10, wccTitle: 17, wdcTitle: 16, merTitle: 17, marker: 26}
@@ -428,6 +444,13 @@ function droughts(titleYears, seriesStart, seriesEnd) {
   return gaps;
 }
 
+// Bands are the gaps between titles of *either* kind, so a title win can never sit
+// inside a shaded "drought". Ferrari's constructors' gaps happen to be total, so the
+// bands are unchanged by this — but they would split the moment a Ferrari driver took
+// a title in a year the team didn't, the way Hamilton's 2008 splits McLaren's.
+const anyTitles = [...new Set([...wccTitles, ...wdcTitles])].sort((a,b) => a - b);
+
+const anyDroughts = droughts(anyTitles, 1950, 2025);
 const wccDroughts = droughts(wccTitles, 1958, 2025);
 const wdcDroughts = droughts(wdcTitles, 1950, 2025);
 
@@ -440,10 +463,10 @@ function render() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-// === Draw drought bands (constructors' droughts, the headline ones) ===
+// === Draw drought bands (spells without a title of either kind) ===
 const bandGroup = el('g', {});
 svg.appendChild(bandGroup);
-wccDroughts.forEach(([start, end, gap]) => {
+anyDroughts.forEach(([start, end, gap]) => {
   const rect = el('rect', {
     x: x(start) - (x(start)-x(start-1))/2,
     y: margin.top,
@@ -575,11 +598,15 @@ rows.forEach(r => {
   }
 });
 
-// === Drought labels (only the constructors' droughts, on the band) ===
-wccDroughts.forEach(([start, end, gap]) => {
+// === Drought labels (on the bands) ===
+anyDroughts.forEach(([start, end, gap]) => {
   const midX = (x(start) + x(end)) / 2;
-  const t = el('text', {x: midX, y: margin.top + plotH - (narrow ? 22 : 8), 'text-anchor': 'middle', class: 'drought-label'});
-  t.textContent = `${gap}-yr drought`;
+  // Anchored just under the P1 line: inside a band Ferrari won neither championship,
+  // so neither series can reach position 1 there and the label cannot collide.
+  const t = el('text', {x: midX, y: margin.top + (narrow ? 48 : 14), 'text-anchor': 'middle', class: 'drought-label'});
+  // On a phone the full caption is wider than the band it labels, so it shortens;
+  // the list below the chart carries the full wording.
+  t.textContent = narrow ? `${gap}y` : `${gap}-yr drought`;
   svg.appendChild(t);
 });
 
@@ -676,15 +703,29 @@ window.addEventListener('resize', () => {
 
 // === Drought summary list (below chart) ===
 const droughtListEl = document.getElementById('droughtList');
-const allDroughts = wccDroughts.map(d => ({...{start:d[0], end:d[1], gap:d[2]}, type: 'Constructors\u2019'}))
-  .concat(wdcDroughts.map(d => ({start:d[0], end:d[1], gap:d[2], type: 'Drivers\u2019'})))
-  .sort((a,b) => a.start - b.start);
+// Grouped rather than interleaved by date, and a single-championship gap is listed
+// only where it differs from a neither-title spell \u2014 an identical row would just
+// restate it. For Ferrari that currently drops every constructors' row, which is
+// itself the point: none of its constructors' droughts was ever broken by a
+// drivers' title.
+const spanKey = d => d[0] + '\u2013' + d[1];
+const anyKeys = new Set(anyDroughts.map(spanKey));
+const distinct = arr => arr.filter(d => !anyKeys.has(spanKey(d)));
+
+const label = (arr, text, cls) =>
+  arr.map(d => ({start: d[0], end: d[1], gap: d[2], text, cls}));
+
+const allDroughts = [
+  ...label(anyDroughts, 'No title of either kind', 'any'),
+  ...label(distinct(wccDroughts), 'No constructors\u2019 title', ''),
+  ...label(distinct(wdcDroughts), 'No drivers\u2019 title', ''),
+];
 
 allDroughts.forEach(d => {
   const row = document.createElement('div');
-  row.className = 'drought-row';
+  row.className = 'drought-row' + (d.cls ? ' ' + d.cls : '');
   const endLabel = d.end >= 2025 ? '2025 (ongoing)' : d.end;
-  row.innerHTML = `<span class="years">${d.type} title drought: ${d.start}\u2013${endLabel}</span><span class="span">${d.gap} years</span>`;
+  row.innerHTML = `<span class="years">${d.text} \u2014 ${d.start}\u2013${endLabel}</span><span class="span">${d.gap} years</span>`;
   droughtListEl.appendChild(row);
 });
 </script>

@@ -269,9 +269,10 @@
   <div class="notes">
     <h2>Title droughts</h2>
     <p class="drought-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which
-      McLaren won neither championship. The single-championship gaps below them run longer, because each one can be
-      interrupted by the other title: Hunt in 1976, Häkkinen in 1999 and Hamilton in 2008 all fall inside a
-      constructors' drought, and Hamilton's win splits the 25-year one into the two shorter bands shown above.</p>
+      McLaren won neither championship. Single-championship gaps are listed after them only where they differ —
+      which is to say, only where the other title interrupted them: Hunt in 1976, Häkkinen in 1999 and Hamilton in
+      2008 each won a drivers' title inside a constructors' drought, and Hamilton's win is what splits the 25-year
+      one into the two shorter bands above.</p>
     <div class="drought-list" id="droughtList"></div>
     <p class="footer-note">
       Bands mark gaps between titles of either kind, so a title win can never sit inside one; banding on the
@@ -693,16 +694,20 @@ window.addEventListener('resize', () => {
 
 // === Drought summary list (below chart) ===
 const droughtListEl = document.getElementById('droughtList');
-// Grouped rather than interleaved by date: the "neither title" spells are what the
-// chart draws, and reading them as a block makes the overlap with the single-
-// championship gaps underneath obvious.
+// Grouped rather than interleaved by date, and a single-championship gap is listed
+// only where it differs from a neither-title spell — an identical row would just
+// restate it. What survives here is exactly what the other title interrupted.
+const spanKey = d => d[0] + '–' + d[1];
+const anyKeys = new Set(anyDroughts.map(spanKey));
+const distinct = arr => arr.filter(d => !anyKeys.has(spanKey(d)));
+
 const label = (arr, text, cls) =>
   arr.map(d => ({start: d[0], end: d[1], gap: d[2], text, cls}));
 
 const allDroughts = [
   ...label(anyDroughts, 'No title of either kind', 'any'),
-  ...label(wccDroughts, 'No constructors’ title', ''),
-  ...label(wdcDroughts, 'No drivers’ title', ''),
+  ...label(distinct(wccDroughts), 'No constructors’ title', ''),
+  ...label(distinct(wdcDroughts), 'No drivers’ title', ''),
 ];
 
 allDroughts.forEach(d => {
