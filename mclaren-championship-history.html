@@ -217,8 +217,20 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 6px;
-    margin: 6px 0 30px;
+    margin: 6px 0 12px;
   }
+  .champ-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin: 0 0 30px;
+    max-width: 78ch;
+  }
+  .champ-note b { color: var(--cream); font-weight: 500; }
+  .champ-note a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(71,199,252,0.35); }
+  .champ-note a:hover { border-bottom-color: var(--blue); }
+  .champ-note a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-bottom-color: transparent; }
   .champ-row {
     display: grid;
     grid-template-columns: 1fr auto 2.4em;
@@ -295,6 +307,10 @@
     <h2>Drivers' champions</h2>
     <p class="section-lead" id="champLead"></p>
     <div class="champ-list" id="champList"></div>
+    <p class="champ-note"><b>Niki Lauda</b> is the only driver to have won a title in both a McLaren and a
+      Ferrari — 1984 in papaya, seven years after the second of his two in red. He is on both lists and no one
+      else is: see the <a href="ferrari%20championship%20history.html">Ferrari chart</a>. Lewis Hamilton,
+      champion here in 2008, has driven for Ferrari since 2025.</p>
 
     <h2>Title droughts</h2>
     <p class="section-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which
