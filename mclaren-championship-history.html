@@ -202,7 +202,7 @@
   .drought-row.any { border-left-color: var(--papaya-bright); }
   .drought-row .years { font-weight: 500; color: var(--cream); }
   .drought-row .span { color: var(--muted); white-space: nowrap; }
-  .drought-lead {
+  .section-lead {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     line-height: 1.7;
@@ -210,6 +210,31 @@
     margin: 0 0 12px;
     max-width: 78ch;
   }
+
+  /* Champions share the droughts' card rhythm but carry the blue of the title
+     dots on the chart, and swap the drought's duration for a years column. */
+  .champ-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 6px;
+    margin: 6px 0 30px;
+  }
+  .champ-row {
+    display: grid;
+    grid-template-columns: 1fr auto 2.4em;
+    align-items: baseline;
+    gap: 12px;
+    padding: 9px 12px;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--blue);
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+  }
+  .champ-row .name { color: var(--cream); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .champ-row .yrs { color: var(--muted); white-space: nowrap; }
+  .champ-row .n { color: var(--blue); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
   @media (max-width: 620px) {
     body { padding: 40px 14px 72px; }
     .legend { gap: 6px 16px; font-size: 10.5px; }
@@ -267,8 +292,12 @@
   </div>
 
   <div class="notes">
+    <h2>Drivers' champions</h2>
+    <p class="section-lead" id="champLead"></p>
+    <div class="champ-list" id="champList"></div>
+
     <h2>Title droughts</h2>
-    <p class="drought-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which
+    <p class="section-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which
       McLaren won neither championship. Single-championship gaps are listed after them only where they differ —
       which is to say, only where the other title interrupted them: Hunt in 1976, Häkkinen in 1999 and Hamilton in
       2008 each won a drivers' title inside a constructors' drought, and Hamilton's win is what splits the 25-year
@@ -691,6 +720,49 @@ window.addEventListener('resize', () => {
   hideTooltip();
   render();
 });
+
+// === Drivers' champions (below chart) ===
+// Derived from the same table the chart draws rather than kept as a second copy,
+// so adding a season updates the list, the chart and the droughts together.
+const champYears = new Map();
+rows.forEach(r => {
+  const winner = r.drivers.find(d => d[1] === 'WC');
+  if (!winner) return;
+  if (!champYears.has(winner[0])) champYears.set(winner[0], []);
+  champYears.get(winner[0]).push(r.year);
+});
+
+// "1988, 1990, 1991" is fine, but a long consecutive run swamps a narrow column,
+// so consecutive titles collapse to a range: 1990–91. Gaps stay listed.
+function yearRuns(ys) {
+  const runs = [];
+  let start = ys[0], prev = ys[0];
+  for (const y of ys.slice(1)) {
+    if (y === prev + 1) prev = y;
+    else { runs.push([start, prev]); start = prev = y; }
+  }
+  runs.push([start, prev]);
+  return runs.map(([a, b]) => a === b ? `${a}` : `${a}–${String(b).slice(2)}`).join(', ');
+}
+
+const champList = document.getElementById('champList');
+const totalTitles = [...champYears.values()].reduce((n, ys) => n + ys.length, 0);
+document.getElementById('champLead').textContent =
+  `${champYears.size} drivers have won the Drivers' Championship in a McLaren, ` +
+  `${totalTitles} titles between them. Ordered by titles, then by the year of the first — ` +
+  `no ranking numbers, because most of the list is tied on one.`;
+
+// Sorted by titles, then earliest title first so the ties read chronologically.
+[...champYears.entries()]
+  .sort((a, b) => b[1].length - a[1].length || a[1][0] - b[1][0])
+  .forEach(([name, ys]) => {
+    const row = document.createElement('div');
+    row.className = 'champ-row';
+    row.innerHTML = `<span class="name">${name}</span>` +
+                    `<span class="yrs">${yearRuns(ys)}</span>` +
+                    `<span class="n">${ys.length}</span>`;
+    champList.appendChild(row);
+  });
 
 // === Drought summary list (below chart) ===
 const droughtListEl = document.getElementById('droughtList');
