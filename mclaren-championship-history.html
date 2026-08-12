@@ -224,9 +224,11 @@
     font-size: 11px;
     line-height: 1.7;
     color: var(--muted);
-    margin: 0 0 30px;
+    margin: 0 0 12px;
     max-width: 78ch;
   }
+  /* a following <p class="footer-note"> means :last-of-type would miss this */
+  .champ-note.last { margin-bottom: 30px; }
   .champ-note b { color: var(--cream); font-weight: 500; }
   .champ-note a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(71,199,252,0.35); }
   .champ-note a:hover { border-bottom-color: var(--blue); }
@@ -308,9 +310,15 @@
     <p class="section-lead" id="champLead"></p>
     <div class="champ-list" id="champList"></div>
     <p class="champ-note"><b>Niki Lauda</b> is the only driver to have won a title in both a McLaren and a
-      Ferrari — 1984 in papaya, seven years after the second of his two in red. He is on both lists and no one
-      else is: see the <a href="ferrari%20championship%20history.html">Ferrari chart</a>. Lewis Hamilton,
-      champion here in 2008, has driven for Ferrari since 2025.</p>
+      Ferrari — 1984 in the Marlboro red-and-white MP4/2, seven years after the second of his two in Ferrari
+      red, so all three of his titles came in a red car. He is on both lists and no one else is: see the
+      <a href="ferrari%20championship%20history.html">Ferrari chart</a>. Lewis Hamilton, champion here in
+      2008, has driven for Ferrari since 2025.</p>
+    <p class="champ-note last">Papaya is the modern identity rather than the historical one, and this list is where
+      that shows: nine of these thirteen titles were won in Marlboro red-and-white (1974–1996), three in
+      silver (West in 1998–99, Vodafone in 2008), and exactly one — Norris in 2025 — in papaya. The orange
+      belongs to Bruce McLaren's own cars of the 1960s and to the team since 2017, either side of every
+      championship above it but the last.</p>
 
     <h2>Title droughts</h2>
     <p class="section-lead">The shaded bands on the chart are the first group: runs of five seasons or more in which

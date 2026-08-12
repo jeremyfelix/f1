@@ -224,9 +224,11 @@
     font-size: 11px;
     line-height: 1.7;
     color: var(--muted);
-    margin: 0 0 30px;
+    margin: 0 0 12px;
     max-width: 78ch;
   }
+  /* a following <p class="footer-note"> means :last-of-type would miss this */
+  .champ-note.last { margin-bottom: 30px; }
   .champ-note b { color: var(--cream); font-weight: 500; }
   .champ-note a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(201,169,97,0.35); }
   .champ-note a:hover { border-bottom-color: var(--gold); }
@@ -307,9 +309,10 @@
     <h2>Drivers' champions</h2>
     <p class="section-lead" id="champLead"></p>
     <div class="champ-list" id="champList"></div>
-    <p class="champ-note"><b>Niki Lauda</b> is the only driver to have won a title in both a Ferrari and a
+    <p class="champ-note last"><b>Niki Lauda</b> is the only driver to have won a title in both a Ferrari and a
       McLaren — 1975 and 1977 in red, either side of the Nürburgring crash that nearly killed him, then 1984
-      in papaya. He is on both lists and no one else is: see the
+      in the Marlboro red-and-white MP4/2. All three came in a red car: McLaren raced in Marlboro colours from
+      1974 to 1996 and did not return to papaya until 2017. He is on both lists and no one else is: see the
       <a href="mclaren-championship-history.html">McLaren chart</a>. Lewis Hamilton, McLaren's 2008 champion,
       has driven for Ferrari since 2025.</p>
 
