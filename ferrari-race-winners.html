@@ -239,22 +239,22 @@
   <header>
     <p class="eyebrow">Scuderia Ferrari · 1950–2026</p>
     <h1>Race<br>Winners<span>.</span></h1>
-    <p class="sub">Every driver who has taken a Grand Prix victory in a Ferrari, ranked by wins, from José Froilán González's breakthrough at Silverstone in 1951 to Charles Leclerc's milestone 250th win at the very same circuit in 2026.</p>
+    <p class="sub">Every driver who has taken a Grand Prix victory in a Ferrari, ranked by wins, from José Froilán González's breakthrough at Silverstone in 1951 to <!--latest-win-->Charles Leclerc's milestone 250th win at the very same circuit in 2026<!--/-->.</p>
     <div class="hero-stats">
       <div class="stat">
-        <div class="n"><em>250</em></div>
+        <div class="n"><em id="stat-total">250</em></div>
         <div class="l">Total wins</div>
       </div>
       <div class="stat">
-        <div class="n">41</div>
+        <div class="n" id="stat-drivers">41</div>
         <div class="l">Winning drivers</div>
       </div>
       <div class="stat">
-        <div class="n">72</div>
+        <div class="n" id="stat-most">72</div>
         <div class="l">Most by one driver</div>
       </div>
       <div class="stat">
-        <div class="n">76</div>
+        <div class="n" id="stat-years">76</div>
         <div class="l">Years of victories</div>
       </div>
     </div>
@@ -277,6 +277,15 @@
 </div>
 
 <script>
+  // ---- Figures the table below cannot supply ----
+  // Maintained by tools/apply-race.py; run tools/check.py after any hand edit.
+  const LAST_SEASON = 2026;
+  const LAST_WIN_YEAR = 2026;
+  const WIN_YEARS = 76;
+  // The 1956 Argentine GP was started by Musso and finished by Fangio, and both
+  // hold the win — so driver credits run one ahead of the team's victory count.
+  const SHARED_WINS = 1;
+
   const data = [
     ["Michael Schumacher", 72],
     ["Niki Lauda", 15],
@@ -321,10 +330,23 @@
     ["Ludovico Scarfiotti", 1],
   ];
 
-  const max = Math.max(...data.map(d => d[1]));
+  // Rank is derived, so a bumped tally never needs the rows reordered by hand.
+  // Sort is stable, so drivers level on wins keep their authored order.
+  const ranked = [...data].sort((a, b) => b[1] - a[1]);
+  const credits = data.reduce((sum, d) => sum + d[1], 0);
+
+  const stats = {
+    total: credits - SHARED_WINS,
+    drivers: data.length,
+    most: ranked[0][1],
+    years: WIN_YEARS,
+  };
+  for (const key in stats) document.getElementById('stat-' + key).textContent = stats[key];
+
+  const max = ranked[0][1];
   const board = document.getElementById('board');
 
-  data.forEach((d, i) => {
+  ranked.forEach((d, i) => {
     const [name, wins] = d;
     const pct = (wins / max * 100).toFixed(1) + '%';
     const row = document.createElement('div');
@@ -338,5 +360,6 @@
     board.appendChild(row);
   });
 </script>
+<!-- race-data through: 2026-08-23 -->
 </body>
 </html>

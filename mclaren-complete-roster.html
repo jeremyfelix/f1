@@ -176,10 +176,10 @@
     <h1>Complete<br>Roster<span>.</span></h1>
     <p class="sub">Every driver who has started a Grand Prix for McLaren — works team and customer-car entries alike — ranked by tenure. Seasons count a driver's McLaren years even when the stint was a partial season, a mid-year substitution, or a second spell years later.</p>
     <div class="hero-stats">
-      <div class="stat"><div class="n"><em>60</em></div><div class="l">Drivers</div></div>
-      <div class="stat"><div class="n">9</div><div class="l">Longest tenure (seasons)</div></div>
-      <div class="stat"><div class="n">162</div><div class="l">Most starts</div></div>
-      <div class="stat"><div class="n">61</div><div class="l">Years of racing</div></div>
+      <div class="stat"><div class="n"><em id="stat-drivers">60</em></div><div class="l">Drivers</div></div>
+      <div class="stat"><div class="n" id="stat-tenure">9</div><div class="l">Longest tenure (seasons)</div></div>
+      <div class="stat"><div class="n" id="stat-starts">163</div><div class="l">Most starts</div></div>
+      <div class="stat"><div class="n" id="stat-seasons">61</div><div class="l">Years of racing</div></div>
     </div>
   </header>
 
@@ -201,17 +201,22 @@
   <footer>
     <span>Source: Wikipedia — McLaren Grand Prix results (works team entries and customer cars), 1966–2026, cross-checked against the season championship standings.</span>
     <span><span class="approx">Blue years</span> mark drivers who started only in privately entered customer McLarens — cars run by independent teams such as Ecurie Bonnier, Team Surtees and Anglo American Racers — rather than for the works team.</span>
-    <span>Bar scaled to 9 seasons (Coulthard, Häkkinen) / Norris's 162 starts.</span>
+    <span id="scale-note">Bar scaled to 9 seasons (Coulthard, Häkkinen) / Norris's 163 starts.</span>
   </footer>
 
 </div>
 
 <script>
+  // ---- Figures the table below cannot supply ----
+  // Maintained by tools/apply-race.py; run tools/check.py after any hand edit.
+  const FIRST_SEASON = 1966;
+  const LAST_SEASON = 2026;
+
   // [name, GP starts, wins, seasons, years label, customer-car entries only]
   const data = [
     ["David Coulthard", 150, 12, 9, "1996–2004", false],
     ["Mika Häkkinen", 131, 20, 9, "1993–2001", false],
-    ["Lando Norris", 162, 12, 8, "2019–present", false],
+    ["Lando Norris", 163, 13, 8, "2019–present", false],
     ["Jenson Button", 136, 8, 8, "2010–17", false],
     ["Alain Prost", 107, 30, 7, "1980, 1984–89", false],
     ["Denny Hulme", 86, 6, 7, "1968–74", false],
@@ -221,7 +226,7 @@
     ["Fernando Alonso", 94, 4, 5, "2007, 2015–18", false],
     ["Kimi Räikkönen", 87, 9, 5, "2002–06", false],
     ["Bruce McLaren", 33, 1, 5, "1966–70", false],
-    ["Oscar Piastri", 79, 9, 4, "2023–present", false],
+    ["Oscar Piastri", 80, 9, 4, "2023–present", false],
     ["Niki Lauda", 59, 8, 4, "1982–85", false],
     ["Jochen Mass", 49, 1, 4, "1974–77", false],
     ["James Hunt", 49, 9, 3, "1976–78", false],
@@ -276,6 +281,25 @@
   const maxSeasons = Math.max(...data.map(d => d[3]));
   const maxGP = Math.max(...data.map(d => d[1]));
 
+  const stats = {
+    drivers: data.length,
+    tenure: maxSeasons,
+    starts: maxGP,
+    seasons: LAST_SEASON - FIRST_SEASON + 1,
+  };
+  for (const key in stats) document.getElementById('stat-' + key).textContent = stats[key];
+
+  // "Pedro de la Rosa" -> "de la Rosa"; nobiliary particles stay with the surname.
+  function surname(name){
+    const parts = name.replace(/ (Jr\.|Sr\.)$/, '').split(' ');
+    const i = parts.findIndex((p, j) => j > 0 && /^(de|van|von|di|la|del)$/i.test(p));
+    return (i === -1 ? parts.slice(-1) : parts.slice(i)).join(' ');
+  }
+  const longest = data.filter(d => d[3] === maxSeasons).map(d => surname(d[0]));
+  const busiest = surname(data.find(d => d[1] === maxGP)[0]);
+  document.getElementById('scale-note').textContent =
+    `Bar scaled to ${maxSeasons} seasons (${longest.join(', ')}) / ${busiest}'s ${maxGP} starts.`;
+
   function render(sortBy){
     // the number column switches between seasons and race starts, so its
     // heading has to switch with it
@@ -317,5 +341,6 @@
 
   render('seasons');
 </script>
+<!-- race-data through: 2026-08-23 -->
 </body>
 </html>
