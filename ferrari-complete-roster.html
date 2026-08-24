@@ -176,10 +176,10 @@
     <h1>Complete<br>Roster<span>.</span></h1>
     <p class="sub">Every driver who has started a Grand Prix for Ferrari — works team and privateer entries alike — ranked by tenure. Seasons count a driver's Ferrari years even when the stint was a partial season, a mid-year substitution, or a second spell years later.</p>
     <div class="hero-stats">
-      <div class="stat"><div class="n"><em>97</em></div><div class="l">Drivers</div></div>
-      <div class="stat"><div class="n">11</div><div class="l">Longest tenure (seasons)</div></div>
-      <div class="stat"><div class="n">180</div><div class="l">Most starts</div></div>
-      <div class="stat"><div class="n">77</div><div class="l">Years of racing</div></div>
+      <div class="stat"><div class="n"><em id="stat-drivers">97</em></div><div class="l">Drivers</div></div>
+      <div class="stat"><div class="n" id="stat-tenure">11</div><div class="l">Longest tenure (seasons)</div></div>
+      <div class="stat"><div class="n" id="stat-starts">180</div><div class="l">Most starts</div></div>
+      <div class="stat"><div class="n" id="stat-seasons">77</div><div class="l">Years of racing</div></div>
     </div>
   </header>
 
@@ -201,18 +201,23 @@
   <footer>
     <span>Source: statsf1.com (race starts, wins) cross-referenced with RaceFans' year-by-year Ferrari works lineups, 1950–2026.</span>
     <span><span class="approx">Gold years</span> mark early-1950s privateer entries (independent teams running customer Ferraris) where exact season spans are less firmly documented than works-team stints; pre-1958 totals also include non-championship Formula One races, which is why some low-GP drivers still span multiple "seasons."</span>
-    <span>Bar scaled to Schumacher's 11 seasons / 180 starts.</span>
+    <span id="scale-note">Bar scaled to Schumacher's 11 seasons / 180 starts.</span>
   </footer>
 
 </div>
 
 <script>
+  // ---- Figures the table below cannot supply ----
+  // Maintained by tools/apply-race.py; run tools/check.py after any hand edit.
+  const FIRST_SEASON = 1950;
+  const LAST_SEASON = 2026;
+
   // [name, GP starts, wins, seasons, years label, approximate/privateer]
   const data = [
     ["Michael Schumacher", 180, 72, 11, "1996–2006", false],
     ["Felipe Massa", 139, 11, 8, "2006–2013", false],
     ["Kimi Räikkönen", 151, 10, 8, "2007–09, 14–18", false],
-    ["Charles Leclerc", 159, 8, 8, "2019–present", false],
+    ["Charles Leclerc", 159, 9, 8, "2019–present", false],
     ["Sebastian Vettel", 118, 14, 6, "2015–2020", false],
     ["Rubens Barrichello", 102, 9, 6, "2000–2005", false],
     ["Gerhard Berger", 96, 5, 6, "1987–89, 93–95", false],
@@ -313,6 +318,25 @@
   const maxSeasons = Math.max(...data.map(d => d[3]));
   const maxGP = Math.max(...data.map(d => d[1]));
 
+  const stats = {
+    drivers: data.length,
+    tenure: maxSeasons,
+    starts: maxGP,
+    seasons: LAST_SEASON - FIRST_SEASON + 1,
+  };
+  for (const key in stats) document.getElementById('stat-' + key).textContent = stats[key];
+
+  // "Pedro de la Rosa" -> "de la Rosa"; nobiliary particles stay with the surname.
+  function surname(name){
+    const parts = name.replace(/ (Jr\.|Sr\.)$/, '').split(' ');
+    const i = parts.findIndex((p, j) => j > 0 && /^(de|van|von|di|la|del)$/i.test(p));
+    return (i === -1 ? parts.slice(-1) : parts.slice(i)).join(' ');
+  }
+  const longest = data.filter(d => d[3] === maxSeasons).map(d => surname(d[0]));
+  const busiest = surname(data.find(d => d[1] === maxGP)[0]);
+  document.getElementById('scale-note').textContent =
+    `Bar scaled to ${maxSeasons} seasons (${longest.join(', ')}) / ${busiest}'s ${maxGP} starts.`;
+
   function render(sortBy){
     // the number column switches between seasons and race starts, so its
     // heading has to switch with it
@@ -354,5 +378,6 @@
 
   render('seasons');
 </script>
+<!-- race-data through: 2026-08-23 -->
 </body>
 </html>

@@ -1,0 +1,34 @@
+{
+  "_readme": [
+    "Append one entry per race, oldest first. Then run:  python3 tools/apply-race.py",
+    "It folds every entry newer than each page's watermark into the pages, and is",
+    "safe to re-run: entries already applied are skipped.",
+    "",
+    "Fields:",
+    "  date        ISO race date. Also the ordering key and the watermark value.",
+    "  name        Grand Prix name, for the log and commit message only.",
+    "  circuit     Short venue name, used in the generated standfirst prose.",
+    "  winner      Full driver name, exactly as it appears in the page tables.",
+    "  team        Winning team key ('mclaren', 'ferrari'), or null if neither won.",
+    "  starters    Per tracked team, the drivers who started. Each gets +1 GP.",
+    "  prose       Optional. 'manual' leaves the standfirst wording alone, for a",
+    "              win worth writing up by hand (a milestone, a first win).",
+    "",
+    "A driver must already exist on the roster page before their first entry here:",
+    "a race result carries no tenure or debut year, so apply-race.py will stop and",
+    "say so rather than invent a row."
+  ],
+  "races": [
+    {
+      "date": "2026-08-23",
+      "name": "Dutch Grand Prix",
+      "circuit": "Zandvoort",
+      "winner": "Lando Norris",
+      "team": "mclaren",
+      "starters": {
+        "mclaren": ["Lando Norris", "Oscar Piastri"],
+        "ferrari": ["Charles Leclerc", "Lewis Hamilton"]
+      }
+    }
+  ]
+}
