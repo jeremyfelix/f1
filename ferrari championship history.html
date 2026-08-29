@@ -17,6 +17,8 @@
     --gold: #C9A961;
     --cream: #EDE7D9;
     --muted: #8C8478;
+    --flag-w: 19px;
+    --flag-gap: 4px;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -247,8 +249,21 @@
     font-size: 11.5px;
   }
   .champ-row .name { color: var(--cream); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   .champ-row .yrs { color: var(--muted); white-space: nowrap; }
   .champ-row .n { color: var(--gold); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+  /* Nationality flag. A fixed-width cell, so the names line up whether the
+     browser draws the flag glyph or falls back to the two-letter code. */
+  .flag{
+    display: inline-block;
+    width: var(--flag-w);
+    margin-right: var(--flag-gap);
+    font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+    font-size: 13px;
+    line-height: 1;
+    letter-spacing: 0;
+    vertical-align: baseline;
+  }
   @media (max-width: 620px) {
     body { padding: 40px 14px 72px; }
     .legend { gap: 6px 16px; font-size: 10.5px; }
@@ -750,6 +765,44 @@ window.addEventListener('resize', () => {
   render();
 });
 
+// ---- Nationality flags ----
+// Mirrors data/drivers.json, holding only the drivers this page lists.
+// Maintained by tools/apply-flags.py; tools/check.py holds it to the file.
+const NATIONALITY = {
+  "Alberto Ascari": "IT",
+  "Jody Scheckter": "ZA",
+  "John Surtees": "GB",
+  "Juan Manuel Fangio": "AR",
+  "Kimi Räikkönen": "FI",
+  "Michael Schumacher": "DE",
+  "Mike Hawthorn": "GB",
+  "Niki Lauda": "AT",
+  "Phil Hill": "US",
+};
+const COUNTRY = {
+  "AR": "Argentina",
+  "AT": "Austria",
+  "DE": "Germany",
+  "FI": "Finland",
+  "GB": "United Kingdom",
+  "IT": "Italy",
+  "US": "United States",
+  "ZA": "South Africa",
+};
+
+// The flag is derived rather than stored: an ISO code's two letters map onto
+// the regional-indicator block, which renders as that country's flag. Windows
+// ships no flag glyphs and falls back to drawing the letter pair, which still
+// reads as a nationality — hence the fixed-width cell, so names stay aligned
+// either way.
+function flag(name){
+  const code = NATIONALITY[name];
+  if (!code) return '<span class="flag"></span>';
+  const emoji = [...code].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join('');
+  const country = COUNTRY[code] || code;
+  return `<span class="flag" role="img" aria-label="${country}" title="${country}">${emoji}</span>`;
+}
+
 // === Drivers' champions (below chart) ===
 // Derived from the same table the chart draws rather than kept as a second copy,
 // so adding a season updates the list, the chart and the droughts together.
@@ -787,7 +840,7 @@ document.getElementById('champLead').textContent =
   .forEach(([name, ys]) => {
     const row = document.createElement('div');
     row.className = 'champ-row';
-    row.innerHTML = `<span class="name">${name}</span>` +
+    row.innerHTML = `<span class="name">${flag(name)}${name}</span>` +
                     `<span class="yrs">${yearRuns(ys)}</span>` +
                     `<span class="n">${ys.length}</span>`;
     champList.appendChild(row);
