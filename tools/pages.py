@@ -28,7 +28,19 @@ TEAMS = {
 INDEX = "index.html"
 PAGES = [INDEX] + [t[k] for t in TEAMS.values() for k in ("winners", "roster")]
 
+# The two championship-history pages are hand-maintained once a season, so they
+# sit outside PAGES — but their champions list names drivers too, and a flag
+# there has to say the same thing as a flag on the boards. FLAG_PAGES is every
+# page carrying an inline nationality table.
+HISTORY_PAGES = ["ferrari championship history.html", "mclaren-championship-history.html"]
+FLAG_PAGES = [t[k] for t in TEAMS.values() for k in ("winners", "roster")] + HISTORY_PAGES
+
 WATERMARK = re.compile(r"(<!-- race-data through: )(\d{4}-\d{2}-\d{2})( -->)")
+
+# Indentation varies: the boards nest their script one level, the two
+# championship-history pages write theirs flush left.
+NAT_BLOCK = re.compile(r"^([ ]*)const NATIONALITY = \{\n(.*?)^[ ]*\};\n", re.S | re.M)
+COUNTRY_BLOCK = re.compile(r"^([ ]*)const COUNTRY = \{\n(.*?)^[ ]*\};\n", re.S | re.M)
 
 
 def path(name):
@@ -113,6 +125,87 @@ def add_winner_row(html, driver, wins=1):
     lines = block.group(2).rstrip().splitlines()
     lines.append('    ["%s", %d],' % (driver, wins))
     return html[:block.start(2)] + "\n" + "\n".join(lines) + html[block.end(2):]
+
+
+# --- Nationalities -----------------------------------------------------------
+# data/drivers.json is the source; every page keeps an inline copy of the rows
+# it needs, because the pages fetch nothing. apply-flags.py writes those copies
+# and check.py holds them to the file.
+
+def drivers_file():
+    with open(path("data/drivers.json"), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _table(pattern, html, kind):
+    m = pattern.search(html)
+    if not m:
+        raise ValueError("page has no 'const %s = {...}' table" % kind)
+    return dict(re.findall(r'"([^"]+)":\s*"([^"]+)"', m.group(2)))
+
+
+def nationalities(html):
+    """The page's inline driver -> ISO code table."""
+    return _table(NAT_BLOCK, html, "NATIONALITY")
+
+
+def countries(html):
+    """The page's inline ISO code -> country name table."""
+    return _table(COUNTRY_BLOCK, html, "COUNTRY")
+
+
+def _set_table(pattern, html, mapping, kind):
+    """Rewrite a table's rows wholesale, keeping the page's own indentation."""
+    m = pattern.search(html)
+    if not m:
+        raise ValueError("page has no 'const %s = {...}' table" % kind)
+    pad = m.group(1)
+    body = "".join('%s  "%s": "%s",\n' % (pad, k, v) for k, v in mapping)
+    block = "%sconst %s = {\n%s%s};\n" % (pad, kind, body, pad)
+    return html[:m.start()] + block + html[m.end():]
+
+
+def set_nationalities(html, mapping):
+    return _set_table(NAT_BLOCK, html, mapping, "NATIONALITY")
+
+
+def set_countries(html, mapping):
+    return _set_table(COUNTRY_BLOCK, html, mapping, "COUNTRY")
+
+
+def champions(html):
+    """Drivers marked "WC" in a championship-history page's season table."""
+    seen = []
+    for name in re.findall(r'\["([^"]+)",\s*"WC"\]', html):
+        if name not in seen:
+            seen.append(name)
+    return seen
+
+
+def listed(page, html):
+    """Every driver whose name the page prints in a list."""
+    if page in HISTORY_PAGES:
+        return champions(html)
+    return [name for name, _ in rows(html)]
+
+
+def flag_tables(page, html, source):
+    """The two tables a page ought to be carrying, and the drivers it lists
+    that data/drivers.json has no nationality for. A page carries only the
+    drivers it names and only the countries those drivers raced for."""
+    nat, missing = {}, []
+    for name in sorted(listed(page, html)):
+        code = source["drivers"].get(name)
+        if code is None:
+            missing.append(name)
+        else:
+            nat[name] = code
+    countries = {c: source["countries"].get(c, c) for c in sorted(set(nat.values()))}
+    return nat, countries, missing
+
+
+def set_flag_tables(html, nat, countries):
+    return set_countries(set_nationalities(html, nat.items()), countries.items())
 
 
 def marker(html, tag, text):

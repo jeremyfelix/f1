@@ -100,6 +100,35 @@ def check_team(team, cfg):
     return total, len(wins)
 
 
+def check_flags():
+    """Every driver a page lists carries a flag, and every flag says what
+    data/drivers.json says. The pages each hold their own copy because they
+    fetch nothing, so this is what keeps six copies telling one story."""
+    source = pages.drivers_file()
+    rerun = " — run tools/apply-flags.py"
+    for page in pages.FLAG_PAGES:
+        html = pages.read(page)
+        nat, countries, missing = pages.flag_tables(page, html, source)
+        on_page = pages.nationalities(html)
+
+        for name in missing:
+            note("%s: %s is listed with no nationality on file" % (page, name))
+        for name, code in sorted(nat.items()):
+            if name not in on_page:
+                fail("%s: %s has no flag%s" % (page, name, rerun))
+            elif on_page[name] != code:
+                fail("%s: %s flies %s, data/drivers.json says %s%s"
+                     % (page, name, on_page[name], code, rerun))
+        for name in sorted(set(on_page) - set(nat) - set(missing)):
+            fail("%s: a flag for %s, who the page does not list%s" % (page, name, rerun))
+
+        if pages.countries(html) != countries:
+            fail("%s: the country names do not match data/drivers.json%s" % (page, rerun))
+
+    for code in sorted(set(source["drivers"].values()) - set(source["countries"])):
+        fail("data/drivers.json: code %s has no country name" % code)
+
+
 def check_index_prose(counts):
     index = pages.read(pages.INDEX)
     for team, (_, drivers) in counts.items():
@@ -119,6 +148,7 @@ def main():
     check_watermarks(races)
     counts = {team: check_team(team, cfg) for team, cfg in pages.TEAMS.items()}
     check_index_prose(counts)
+    check_flags()
 
     for team, (total, drivers) in sorted(counts.items()):
         print("%-8s %d wins across %d drivers" % (pages.TEAMS[team]["label"], total, drivers))

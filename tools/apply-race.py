@@ -10,8 +10,9 @@ entries dated after its own watermark.
 
 What it maintains: race starts and win tallies in the data arrays, the derived
 constants (WIN_YEARS, LAST_WIN_YEAR, LAST_SEASON), the win counts on the index,
-the season spans in the headings of the pages it owns, and the templated closing
-clause of the two standfirsts. Everything else is prose, and stays hand-written.
+the season spans in the headings of the pages it owns, the templated closing
+clause of the two standfirsts, and the nationality table of any page that gained
+a driver. Everything else is prose, and stays hand-written.
 """
 import argparse
 import calendar
@@ -203,6 +204,20 @@ def main():
 
     for page, date in touched.items():
         html[page] = pages.set_watermark(html[page], date)
+
+    # A first-time winner is added to the board automatically, so their flag has
+    # to arrive with them. Nothing to look up for a page that gained no driver.
+    source = pages.drivers_file()
+    for page in touched:
+        if page not in pages.FLAG_PAGES:
+            continue
+        nat, countries, missing = pages.flag_tables(page, html[page], source)
+        if nat != pages.nationalities(html[page]):
+            html[page] = pages.set_flag_tables(html[page], nat, countries)
+            log.append("  %s\n    flags refreshed from data/drivers.json" % page)
+        for name in missing:
+            log.append("  %s\n    no nationality on file for %s — add them to "
+                       "data/drivers.json, then run tools/apply-flags.py" % (page, name))
 
     print("\n".join(log) if log else "  (watermarks only)")
     if args.dry_run:
