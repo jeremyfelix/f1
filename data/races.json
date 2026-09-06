@@ -32,6 +32,17 @@
         "mclaren": ["Lando Norris", "Oscar Piastri"],
         "ferrari": ["Charles Leclerc", "Lewis Hamilton"]
       }
+    },
+    {
+      "date": "2026-09-06",
+      "name": "Italian Grand Prix",
+      "circuit": "Monza",
+      "winner": "Kimi Antonelli",
+      "team": null,
+      "starters": {
+        "mclaren": ["Lando Norris", "Oscar Piastri"],
+        "ferrari": ["Charles Leclerc", "Lewis Hamilton"]
+      }
     }
   ]
 }
