@@ -29,8 +29,14 @@
       "winner": "Lando Norris",
       "team": "mclaren",
       "starters": {
-        "mclaren": ["Lando Norris", "Oscar Piastri"],
-        "ferrari": ["Charles Leclerc", "Lewis Hamilton"]
+        "mclaren": [
+          "Lando Norris",
+          "Oscar Piastri"
+        ],
+        "ferrari": [
+          "Charles Leclerc",
+          "Lewis Hamilton"
+        ]
       }
     },
     {
@@ -40,8 +46,48 @@
       "winner": "Kimi Antonelli",
       "team": null,
       "starters": {
-        "mclaren": ["Lando Norris", "Oscar Piastri"],
-        "ferrari": ["Charles Leclerc", "Lewis Hamilton"]
+        "mclaren": [
+          "Lando Norris",
+          "Oscar Piastri"
+        ],
+        "ferrari": [
+          "Charles Leclerc",
+          "Lewis Hamilton"
+        ]
+      }
+    },
+    {
+      "date": "2026-09-13",
+      "name": "Spanish Grand Prix",
+      "circuit": "Madrid",
+      "winner": "Kimi Antonelli",
+      "team": null,
+      "starters": {
+        "mclaren": [
+          "Lando Norris",
+          "Oscar Piastri"
+        ],
+        "ferrari": [
+          "Charles Leclerc",
+          "Lewis Hamilton"
+        ]
+      }
+    },
+    {
+      "date": "2026-09-26",
+      "name": "Azerbaijan Grand Prix",
+      "circuit": "Baku",
+      "winner": "George Russell",
+      "team": null,
+      "starters": {
+        "mclaren": [
+          "Lando Norris",
+          "Oscar Piastri"
+        ],
+        "ferrari": [
+          "Charles Leclerc",
+          "Lewis Hamilton"
+        ]
       }
     }
   ]
