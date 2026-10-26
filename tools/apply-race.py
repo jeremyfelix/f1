@@ -10,9 +10,9 @@ entries dated after its own watermark.
 
 What it maintains: race starts and win tallies in the data arrays, the derived
 constants (WIN_YEARS, LAST_WIN_YEAR, LAST_SEASON), the win counts on the index,
-the season spans in the headings of the pages it owns, the templated closing
-clause of the two standfirsts, and the nationality table of any page that gained
-a driver. Everything else is prose, and stays hand-written.
+the season spans in the headings of the pages it owns, the recency line, the
+templated closing clause of the two standfirsts, and the nationality table of any
+page that gained a driver. Everything else is prose, and stays hand-written.
 """
 import argparse
 import calendar
@@ -160,7 +160,7 @@ def main():
             html[page] = fn(html[page], team, todo, log)
             if len(log) == entries + 1:      # nothing to report under this page
                 log.pop()
-            touched[page] = todo[-1]["date"]
+            touched[page] = todo[-1]
             after = pages.const(html[page], "LAST_SEASON")
             if after != before:
                 seasons[page] = (before, after)
@@ -196,14 +196,15 @@ def main():
                     log.append("    %s card -> –%d" % (cfg[kind], new))
         if len(log) == entries + 1:
             log.pop()
-        touched[pages.INDEX] = todo[-1]["date"]
+        touched[pages.INDEX] = todo[-1]
 
     if not touched:
         print("Up to date — no races newer than the page watermarks.")
         return
 
-    for page, date in touched.items():
-        html[page] = pages.set_watermark(html[page], date)
+    for page, race in touched.items():
+        html[page] = pages.set_watermark(html[page], race["date"])
+        html[page] = pages.marker(html[page], "asof", pages.asof_text(race))
 
     # A first-time winner is added to the board automatically, so their flag has
     # to arrive with them. Nothing to look up for a page that gained no driver.
