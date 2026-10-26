@@ -49,6 +49,22 @@ def check_watermarks(races):
              % races[-1]["date"])
 
 
+def check_asof(races):
+    """Each page's recency line names the race its watermark points at."""
+    by_date = {r["date"]: r for r in races}
+    for page in pages.PAGES:
+        html = pages.read(page)
+        shown = pages.marker_text(html, "asof")
+        mark = pages.watermark(html)
+        if shown is None:
+            fail("%s: no recency line (<!--asof--> marker) — run tools/apply-race.py" % page)
+        elif mark not in by_date:
+            fail("%s: watermark %s is not a race in data/races.json" % (page, mark))
+        elif shown != pages.asof_text(by_date[mark]):
+            fail("%s: recency line reads %r, expected %r — run tools/apply-race.py"
+                 % (page, shown, pages.asof_text(by_date[mark])))
+
+
 def check_team(team, cfg):
     label = cfg["label"]
     winners = pages.read(cfg["winners"])
@@ -146,6 +162,7 @@ def main():
     races = pages.ledger()
     check_ledger(races)
     check_watermarks(races)
+    check_asof(races)
     counts = {team: check_team(team, cfg) for team, cfg in pages.TEAMS.items()}
     check_index_prose(counts)
     check_flags()

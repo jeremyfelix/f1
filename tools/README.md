@@ -21,6 +21,11 @@ the last race it reflects, and only entries dated after it are applied.
 | `WIN_YEARS`, `LAST_WIN_YEAR`, `LAST_SEASON` | `f1-lineage.html` |
 | Win counts and closing clause on `index.html` | |
 | Season spans in the headings of the four race pages | |
+| Recency line ("Current through the …") | |
+
+Each of the five race-by-race pages prints a recency line naming the race its watermark
+points at ("Current through the 2026 United States Grand Prix · 25 October 2026");
+`apply-race.py` rewrites it with the watermark and `check.py` fails if the two disagree.
 
 The hero figures are no longer stored anywhere: each page computes them from its
 own table at render time, so a bumped tally cannot disagree with the number
@@ -69,6 +74,7 @@ way.
 ## What `check.py` enforces
 
 - Every page reflects the same race, and the ledger has nothing newer.
+- Every race-by-race page's recency line matches the ledger race at its watermark.
 - Win tallies agree between each team's winners board and its roster page.
 - Nobody has more wins than starts, or wins without a place on the board.
 - A driver listed `2019–present` has a season count reaching the last season raced.

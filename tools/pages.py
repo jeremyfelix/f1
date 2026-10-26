@@ -4,6 +4,7 @@ The pages are self-contained static HTML with their data in an inline JS array,
 and they stay that way: these helpers patch the array rows and the few constants
 in place rather than generating the pages from a template.
 """
+import calendar
 import json
 import os
 import re
@@ -219,6 +220,14 @@ def marker(html, tag, text):
 def marker_text(html, tag):
     m = re.search(r"<!--%s-->(.*?)<!--/-->" % re.escape(tag), html, re.S)
     return m.group(1) if m else None
+
+
+def asof_text(race):
+    """The recency line: 'Current through the 2026 United States Grand Prix ·
+    25 October 2026'. One source of truth for apply-race.py and check.py."""
+    y, m, d = race["date"].split("-")
+    return "Current through the %s %s · %d %s %s" % (
+        y, race["name"], int(d), calendar.month_name[int(m)], y)
 
 
 ONES = ("zero one two three four five six seven eight nine ten eleven twelve "
